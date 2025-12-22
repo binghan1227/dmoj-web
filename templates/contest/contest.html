@@ -15,6 +15,12 @@
                 count_down($(this));
             });
         });
+
+        $('.contest-extracting-to-pdf form').on('submit', function() {
+            var button = $(this).find('button');
+            button.html('<i class="fa fa-spinner fa-spin"></i> {{ _("Generating...") }}');
+            button.prop('disabled', true);
+        });
     </script>
     {% include "contest/media-js.html" %}
     {% include "comments/media-js.html" %}
@@ -186,7 +192,15 @@
     </div>
 
     <div class="contest-extracting-to-pdf">
-        
+        <form action="{{ url('contest_export_pdf', contest.key) }}" method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn">
+                <i class="fa fa-file-pdf-o"></i>{{ _('Export Contest to PDF') }}
+            </button>
+        </form>
+        <p style="color: #666; font-size: 14px; margin-top: 8px;">
+            {{ _('Includes contest description and problem details') }}
+        </p>
     </div>
 
     {% if contest.ended or request.user.is_superuser or is_editor or is_tester or (is_spectator and contest.started) %}
