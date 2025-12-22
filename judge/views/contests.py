@@ -46,7 +46,7 @@ from judge.utils.views import DiggPaginatorMixin, QueryStringSortMixin, SingleOb
 __all__ = ['ContestList', 'ContestDetail', 'ContestRanking', 'ContestJoin', 'ContestLeave', 'ContestCalendar',
            'ContestClone', 'ContestStats', 'ContestMossView', 'ContestMossDelete', 'contest_ranking_ajax',
            'ContestParticipationList', 'ContestParticipationDisqualify', 'get_contest_ranking_list',
-           'base_contest_ranking_list']
+           'base_contest_ranking_list', 'ContestExportPDF']
 
 
 def _find_contest(request, key, private_check=True):
@@ -906,3 +906,76 @@ class ContestTagDetail(TitleMixin, ContestTagDetailAjax):
 
     def get_title(self):
         return _('Contest tag: %s') % self.object.name
+
+class ContestExportPDF(ContestMixin, View):
+    """导出竞赛信息为PDF"""
+    
+    def post(self, request, *args, **kwargs):
+        try:
+            # 直接从 kwargs 中获取比赛 key
+            contest_key = kwargs.get('contest')
+            
+            # 使用 _find_contest 函数获取比赛
+            contest, exists = _find_contest(request, contest_key, private_check=True)
+            if not exists:
+                return contest  # _find_contest 已经返回了错误响应
+            
+            # 获取比赛的所有题目
+            contest_problems = contest.contest_problems.order_by('order').select_related('problem')
+            
+            # 构建响应内容
+            response_content = f"竞赛信息导出\n"
+            response_content += "=" * 50 + "\n\n"
+            
+            # 比赛基本信息
+            response_content += "【基本信息】\n"
+            response_content += f"编号: {contest.key}\n"
+            response_content += f"名称: {contest.name}\n"
+            response_content += f"开始时间: {contest.start_time}\n"
+            response_content += f"结束时间: {contest.end_time}\n"
+            response_content += f"时间限制: {contest.time_limit or '无限制'}\n"
+            
+            # 比赛描述
+            response_content += "【描述】\n"
+            response_content += f"{contest.description or '无描述'}\n\n"
+            
+            # 题目列表
+            response_content += "【题目列表】\n"
+            if contest_problems:
+                for i, cp in enumerate(contest_problems, 1):
+                    problem = cp.problem
+                    response_content += f"{i}. {problem.code} - {problem.name}\n"
+                    if cp.points:
+                        response_content += f"   分数: {cp.points} 分\n"
+                    if cp.max_submissions:
+                        response_content += f"   最大提交次数: {cp.max_submissions}\n"
+                    response_content += "\n"
+            else:
+                response_content += "暂无题目\n\n"
+            
+            # 统计信息
+            response_content += "【统计信息】\n"
+            response_content += f"参与人数: {contest.user_count}\n"
+            response_content += f"题目数量: {contest_problems.count()}\n\n"
+            
+            response_content += "=" * 50 + "\n"
+            response_content += f"导出时间: {timezone.now()}\n"
+            response_content += f"导出用户: {request.user.username if request.user.is_authenticated else '未登录'}"
+            
+            # 创建响应
+            from django.http import HttpResponse
+            response = HttpResponse(
+                response_content,
+                content_type='text/plain; charset=utf-8'
+            )
+            response['Content-Disposition'] = f'attachment; filename="contest_{contest.key}_info.txt"'
+            
+            return response
+            
+        except Exception as e:
+            from django.http import JsonResponse
+            return JsonResponse({
+                'success': False,
+                'error': str(e),
+                'message': '导出竞赛信息时发生错误'
+            }, status=500)
