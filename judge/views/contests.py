@@ -1,4 +1,5 @@
 import json
+import markdown
 from calendar import Calendar, SUNDAY
 from collections import defaultdict, namedtuple
 from datetime import date, datetime, time, timedelta
@@ -908,67 +909,432 @@ class ContestTagDetail(TitleMixin, ContestTagDetailAjax):
         return _('Contest tag: %s') % self.object.name
 
 class ContestExportPDF(ContestMixin, View):
-    """导出竞赛信息为PDF"""
     
     def post(self, request, *args, **kwargs):
         try:
-            # 直接从 kwargs 中获取比赛 key
             contest_key = kwargs.get('contest')
             
-            # 使用 _find_contest 函数获取比赛
             contest, exists = _find_contest(request, contest_key, private_check=True)
             if not exists:
-                return contest  # _find_contest 已经返回了错误响应
+                return contest
             
-            # 获取比赛的所有题目
             contest_problems = contest.contest_problems.order_by('order').select_related('problem')
             
-            # 构建响应内容
-            response_content = f"竞赛信息导出\n"
-            response_content += "=" * 50 + "\n\n"
+            totalscore = 0
+            for page_num, cp in enumerate(contest_problems, 1):
+                problem = cp.problem
+                
+                totalscore += problem.points
             
-            # 比赛基本信息
-            response_content += "【基本信息】\n"
-            response_content += f"编号: {contest.key}\n"
-            response_content += f"名称: {contest.name}\n"
-            response_content += f"开始时间: {contest.start_time}\n"
-            response_content += f"结束时间: {contest.end_time}\n"
-            response_content += f"时间限制: {contest.time_limit or '无限制'}\n"
+            html_content = f"""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <title>Contest Paper - {contest.name}</title>
+                <style>
+                    @media print {{
+                        @page {{
+                            margin: 20mm 25mm;
+                            size: A4;
+                        }}
+                        
+                        @page :first {{
+                            margin-top: 15mm;
+                        }}
+                        
+                        body {{
+                            margin: 0;
+                            padding: 0;
+                            color: #000 !important;
+                            background: #fff !important;
+                            font-size: 11pt;
+                            line-height: 1.4;
+                        }}
+                        
+                        .page {{
+                            break-inside: avoid;
+                            page-break-after: always;
+                        }}
+                        
+                        .last-page {{
+                            page-break-after: auto;
+                        }}
+                        
+                        .no-print {{
+                            display: none !important;
+                        }}
+                        
+                        .cover-controls {{
+                            display: none !important;
+                        }}
+                    }}
+                    
+                    body {{
+                        font-family: 'Times New Roman', 'SimSun', serif;
+                        line-height: 1.4;
+                        color: #000;
+                        margin: 0;
+                        padding: 0;
+                        font-size: 11pt;
+                        background: #fff;
+                        -webkit-print-color-adjust: exact;
+                        print-color-adjust: exact;
+                    }}
+                    
+                    .cover-page {{
+                        height: 277mm;
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: center;
+                        align-items: center;
+                        text-align: center;
+                        padding: 20mm;
+                        box-sizing: border-box;
+                        border-bottom: 2px solid #000;
+                    }}
+                    
+                    .contest-title {{
+                        font-size: 24pt;
+                        font-weight: bold;
+                        margin-bottom: 15mm;
+                        text-decoration: underline;
+                        text-underline-offset: 5px;
+                    }}
+                    
+                    .contest-info {{
+                        font-size: 14pt;
+                        margin-bottom: 20mm;
+                        line-height: 2;
+                    }}
+                    
+                    .instructions {{
+                        font-size: 10pt;
+                        margin-top: 25mm;
+                        padding: 5mm;
+                        border: 1px solid #000;
+                        width: 80%;
+                        text-align: left;
+                    }}
+                    
+                    .instructions h3 {{
+                        margin-top: 0;
+                        text-align: center;
+                    }}
+                    
+                    .instructions ul {{
+                        padding-left: 20px;
+                        margin: 10px 0;
+                    }}
+                    
+                    .page {{
+                        min-height: 257mm;
+                        padding: 15mm 25mm;
+                        box-sizing: border-box;
+                        position: relative;
+                        border-bottom: 1px solid #eee;
+                    }}
+                    
+                    .page-header {{
+                        border-bottom: 2px solid #000;
+                        padding-bottom: 5mm;
+                        margin-bottom: 8mm;
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: flex-end;
+                    }}
+                    
+                    .contest-name {{
+                        font-size: 12pt;
+                        font-weight: bold;
+                    }}
+                    
+                    .problem-info {{
+                        text-align: right;
+                        font-size: 10pt;
+                    }}
+                    
+                    .problem-points {{
+                        font-size: 14pt;
+                        font-weight: bold;
+                        color: #d00;
+                    }}
+                    
+                    .problem-content {{
+                        margin-bottom: 10mm;
+                    }}
+                    
+                    .problem-title {{
+                        font-size: 16pt;
+                        font-weight: bold;
+                        margin-bottom: 5mm;
+                        padding-bottom: 3mm;
+                        border-bottom: 1px solid #666;
+                    }}
+                    
+                    .problem-meta {{
+                        font-size: 10pt;
+                        color: #666;
+                        margin-bottom: 8mm;
+                        display: flex;
+                        gap: 15mm;
+                    }}
+                    
+                    .problem-description {{
+                        font-size: 11pt;
+                        line-height: 1.5;
+                        margin-bottom: 5mm;
+                        white-space: pre-wrap;
+                        font-family: inherit;
+                    }}
+                    
+                    .answer-area {{
+                        margin-top: 15mm;
+                        padding-top: 8mm;
+                        border-top: 1px dashed #999;
+                    }}
+                    
+                    .answer-header {{
+                        font-size: 12pt;
+                        font-weight: bold;
+                        margin-bottom: 5mm;
+                        color: #006;
+                    }}
+                    
+                    .answer-box {{
+                        min-height: 120mm;
+                        border: 2px solid #ccc;
+                        padding: 5mm;
+                        margin-bottom: 3mm;
+                        background: linear-gradient(to bottom, transparent 95%, #f0f0f0 95%);
+                        background-size: 100% 25px;
+                        line-height: 25px;
+                    }}
+                    
+                    .page-footer {{
+                        position: absolute;
+                        bottom: 15mm;
+                        left: 25mm;
+                        right: 25mm;
+                        font-size: 9pt;
+                        color: #666;
+                        display: flex;
+                        justify-content: space-between;
+                        padding-top: 3mm;
+                        border-top: 1px solid #ccc;
+                    }}
+                    
+                    .page-number {{
+                        text-align: center;
+                        flex-grow: 1;
+                    }}
+                    
+                    .student-info {{
+                        position: absolute;
+                        bottom: 5mm;
+                        left: 25mm;
+                        right: 25mm;
+                        font-size: 9pt;
+                        display: flex;
+                        justify-content: space-between;
+                    }}
+                    
+                    .info-field {{
+                        width: 40mm;
+                        border-bottom: 1px solid #999;
+                        text-align: center;
+                        padding-bottom: 2px;
+                    }}
+                    
+                    .cover-controls {{
+                        position: fixed;
+                        top: 20px;
+                        right: 20px;
+                        z-index: 1000;
+                        background: white;
+                        padding: 15px;
+                        border: 2px solid #007bff;
+                        border-radius: 5px;
+                        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                    }}
+                    
+                    .cover-controls h4 {{
+                        margin-top: 0;
+                        margin-bottom: 10px;
+                        color: #007bff;
+                    }}
+                    
+                    .print-btn {{
+                        background-color: #007bff;
+                        color: white;
+                        border: none;
+                        padding: 8px 15px;
+                        border-radius: 4px;
+                        cursor: pointer;
+                        font-size: 12px;
+                        display: block;
+                        width: 100%;
+                        margin-bottom: 5px;
+                    }}
+                    
+                    .print-btn:hover {{
+                        background-color: #0056b3;
+                    }}
+                    
+                    .text-center {{ text-align: center; }}
+                    .text-right {{ text-align: right; }}
+                    .bold {{ font-weight: bold; }}
+                    .italic {{ font-style: italic; }}
+                </style>
+            </head>
+            <body>
+                <!-- 封面页控制按钮（打印时隐藏） -->
+                <div class="cover-controls no-print">
+                    <h4>Exam Paper Printing</h4>
+                    <button class="print-btn" onclick="window.print()">Print the Paper</button>
+                    <button class="print-btn" onclick="printFromPage(1)">Print from the Problems</button>
+                    <p style="font-size: 10px; margin: 10px 0 0 0; color: #666;">
+                        Tips: Select "save as PDF"<br>
+                        Paper Size: Default A4
+                    </p>
+                </div>
+                
+                <!-- 封面页 -->
+                <div class="page cover-page">
+                    <div class="contest-title">{contest.name}</div>
+                    
+                    <div class="contest-info">
+                        <div><span class="bold">Start Time: </span>{contest.start_time}</div>
+                        <div><span class="bold">End Time: </span>{contest.end_time}</div>
+                        <div><span class="bold">Time Limits: </span>{contest.time_limit or 'No limit'}</div>
+                        <div><span class="bold">Total Problems: </span>{contest_problems.count()}</div>
+                        <div style="margin-top: 10mm;"><span class="bold">Student Name: </span>____________________</div>
+                        <div><span class="bold">Student NetID: </span>____________________</div>
+                    </div>
+                    
+                    <div class="instructions">
+                        <h3>Instructions</h3>
+                        <ul>
+                            <li>Total Score: {totalscore}</li>
+                            <li>Pages: {contest_problems.count() + 1}</li>
+                        </ul>
+                        <div class="text-right italic">—— {timezone.now().strftime('%m/%d/%Y')} ——</div>
+                    </div>
+                </div>
+            """
             
-            # 比赛描述
-            response_content += "【描述】\n"
-            response_content += f"{contest.description or '无描述'}\n\n"
+            for page_num, cp in enumerate(contest_problems, 1):
+                problem = cp.problem
+                points = problem.points
+                
+                if problem.description:
+                    description_html = mark_safe(markdown.markdown(
+                        problem.description,
+                        extensions=[
+                            'extra',
+                            'codehilite',
+                            'toc',
+                            'nl2br',
+                        ],
+                        extension_configs={
+                            'codehilite': {
+                                'css_class': 'codehilite',
+                                'linenums': False,
+                            }
+                        }
+                    ))
+                else:
+                    description_html = '<p>No description</p>'
+                
+                html_content += f"""
+                <!-- Problem {page_num} -->
+                <div class="page {'last-page' if page_num == contest_problems.count() else ''}">
+                    <!-- 页眉 -->
+                    <div class="page-header">
+                        <div class="contest-name">
+                            {contest.name}
+                        </div>
+                        <div class="problem-info">
+                            Problem {page_num} / {contest_problems.count()} <br>
+                            <span class="problem-points">{points} - points</span>
+                        </div>
+                    </div>
+                    
+                    <!-- 题目内容 -->
+                    <div class="problem-content">
+                        <div class="problem-title">
+                            Problem {page_num}: {problem.name}
+                        </div>
+                    
+                        <!--
+                        <div class="problem-meta">
+                            <div>题目ID: {problem.code}</div>
+                            <div>时间限制: 1秒/测试点</div>
+                            <div>内存限制: 256MB</div>
+                        </div>
+                        -->
+                        
+                        <div class="problem-description">
+                            {description_html}
+                        </div>
+                    </div>
+                    
+                    <!-- 答题区域 -->
+                    <div class="answer-area">
+                        <div class="answer-header">
+                            Answer Area (write down your answer in this area)
+                        </div>
+                        <div class="answer-box">
+                            <!-- 答题格子线 - 通过CSS背景实现 -->
+                        </div>
+                    </div>
+                    
+                    <!-- 页脚 -->
+                    <div class="page-footer">
+                        <div class="text-left">Problem {page_num}</div>
+                        <div class="page-number">Page {page_num + 1} / {contest_problems.count() + 1}</div>
+                        <div class="text-right">Points: {points}</div>
+                    </div>
+                    
+                    <!-- 学生信息填写区 -->
+                    <div class="student-info">
+                        <div class="info-field">Student Name: ________________</div>
+                        <div class="info-field">Student NetID: ________________</div>
+                        <div class="info-field">Score: ________________</div>
+                    </div>
+                </div>
+                """
             
-            # 题目列表
-            response_content += "【题目列表】\n"
-            if contest_problems:
-                for i, cp in enumerate(contest_problems, 1):
-                    problem = cp.problem
-                    response_content += f"{i}. {problem.code} - {problem.name}\n"
-                    if cp.points:
-                        response_content += f"   分数: {cp.points} 分\n"
-                    if cp.max_submissions:
-                        response_content += f"   最大提交次数: {cp.max_submissions}\n"
-                    response_content += "\n"
-            else:
-                response_content += "暂无题目\n\n"
+            html_content += """
+            <script>
+                function printFromPage(startPage) {
+                    // 设置打印样式，隐藏封面页
+                    const style = document.createElement('style');
+                    style.innerHTML = `
+                        @media print {
+                            .cover-page {
+                                display: none !important;
+                            }
+                            body > .page:nth-child(-n+${startPage}) {
+                                display: none !important;
+                            }
+                        }
+                    `;
+                    document.head.appendChild(style);
+                    window.print();
+                    setTimeout(() => style.remove(), 100);
+                }
+            </script>
+            </body>
+            </html>
+            """
             
-            # 统计信息
-            response_content += "【统计信息】\n"
-            response_content += f"参与人数: {contest.user_count}\n"
-            response_content += f"题目数量: {contest_problems.count()}\n\n"
-            
-            response_content += "=" * 50 + "\n"
-            response_content += f"导出时间: {timezone.now()}\n"
-            response_content += f"导出用户: {request.user.username if request.user.is_authenticated else '未登录'}"
-            
-            # 创建响应
             from django.http import HttpResponse
             response = HttpResponse(
-                response_content,
-                content_type='text/plain; charset=utf-8'
+                html_content,
+                content_type='text/html; charset=utf-8'
             )
-            response['Content-Disposition'] = f'attachment; filename="contest_{contest.key}_info.txt"'
+            response['Content-Disposition'] = f'attachment; filename="contest_{contest.key}_printable.html"'
             
             return response
             
@@ -977,5 +1343,5 @@ class ContestExportPDF(ContestMixin, View):
             return JsonResponse({
                 'success': False,
                 'error': str(e),
-                'message': '导出竞赛信息时发生错误'
+                'message': 'Error exporting contest.'
             }, status=500)
