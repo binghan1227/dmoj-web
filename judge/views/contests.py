@@ -1217,6 +1217,7 @@ class ContestExportPDF(ContestMixin, View):
                         <ul>
                             <li>Total Score: {totalscore}</li>
                             <li>Pages: {contest_problems.count() + 1}</li>
+                            {contest.description}
                         </ul>
                         <div class="text-right italic">—— {timezone.now().strftime('%m/%d/%Y')} ——</div>
                     </div>
@@ -1228,8 +1229,10 @@ class ContestExportPDF(ContestMixin, View):
                 points = problem.points
                 
                 if problem.description:
+                    description = problem.description
+
                     description_html = mark_safe(markdown.markdown(
-                        problem.description,
+                        description,
                         extensions=[
                             'extra',
                             'codehilite',
@@ -1240,11 +1243,10 @@ class ContestExportPDF(ContestMixin, View):
                             'codehilite': {
                                 'css_class': 'codehilite',
                                 'linenums': False,
-                            }
-                        }
+                            },
+                        },
+                        output_format='html5'
                     ))
-                else:
-                    description_html = '<p>No description</p>'
                 
                 html_content += f"""
                 <!-- Problem {page_num} -->
@@ -1265,17 +1267,31 @@ class ContestExportPDF(ContestMixin, View):
                         <div class="problem-title">
                             Problem {page_num}: {problem.name}
                         </div>
-                    
-                        <!--
-                        <div class="problem-meta">
-                            <div>题目ID: {problem.code}</div>
-                            <div>时间限制: 1秒/测试点</div>
-                            <div>内存限制: 256MB</div>
-                        </div>
-                        -->
                         
                         <div class="problem-description">
                             {description_html}
+                        </div>
+                    </div>
+                    
+                    <!-- 页脚 -->
+                    <div class="page-footer">
+                        <div class="text-left">Problem {page_num}</div>
+                        <div class="text-right">Points: {points}</div>
+                    </div>
+                </div>
+                """
+                
+                html_content += f"""
+                <!-- Problem {page_num} -->
+                <div class="page {'last-page' if page_num == contest_problems.count() else ''}">
+                    <!-- 页眉 -->
+                    <div class="page-header">
+                        <div class="contest-name">
+                            {contest.name}
+                        </div>
+                        <div class="problem-info">
+                            Problem {page_num} / {contest_problems.count()} <br>
+                            <span class="problem-points">{points} - points</span>
                         </div>
                     </div>
                     
@@ -1292,7 +1308,6 @@ class ContestExportPDF(ContestMixin, View):
                     <!-- 页脚 -->
                     <div class="page-footer">
                         <div class="text-left">Problem {page_num}</div>
-                        <div class="page-number">Page {page_num + 1} / {contest_problems.count() + 1}</div>
                         <div class="text-right">Points: {points}</div>
                     </div>
                     
@@ -1300,7 +1315,7 @@ class ContestExportPDF(ContestMixin, View):
                     <div class="student-info">
                         <div class="info-field">Student Name: ________________</div>
                         <div class="info-field">Student NetID: ________________</div>
-                        <div class="info-field">Score: ________________</div>
+                        <div class="info-field">Score For this Problem: ________________</div>
                     </div>
                 </div>
                 """
@@ -1308,7 +1323,6 @@ class ContestExportPDF(ContestMixin, View):
             html_content += """
             <script>
                 function printFromPage(startPage) {
-                    // 设置打印样式，隐藏封面页
                     const style = document.createElement('style');
                     style.innerHTML = `
                         @media print {
