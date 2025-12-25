@@ -1,5 +1,7 @@
+import re
 import json
 import markdown
+from markdown_katex import KatexExtension
 from calendar import Calendar, SUNDAY
 from collections import defaultdict, namedtuple
 from datetime import date, datetime, time, timedelta
@@ -930,6 +932,25 @@ class ContestExportPDF(ContestMixin, View):
             <!DOCTYPE html>
             <html>
             <head>
+                <!-- KaTeX CSS -->
+                <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+                <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+                <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+                    onload="renderMathInElement(document.body);"></script>
+                <script>
+                    document.addEventListener("DOMContentLoaded", function() {{
+                        renderMathInElement(document.body, {{
+                            delimiters: [
+                                {{left: "$$", right: "$$", display: true}},
+                                {{left: "$", right: "$", display: false}},
+                                {{left: "~~", right: "~~", display: true}},
+                                {{left: "~", right: "~", display: false}},
+                            ],
+                            throwOnError: false
+                        }});
+                    }});
+                </script>
+                
                 <meta charset="UTF-8">
                 <title>Contest Paper - {contest.name}</title>
                 <style>
@@ -968,6 +989,20 @@ class ContestExportPDF(ContestMixin, View):
                         .cover-controls {{
                             display: none !important;
                         }}
+                        
+                        pre {{
+                            page-break-inside: avoid !important;
+                            break-inside: avoid !important;
+                        }}
+                        
+                        table {{
+                            page-break-inside: avoid !important;
+                            break-inside: avoid !important;
+                        }}
+                        
+                        ul, ol {{
+                            page-break-inside: avoid !important;
+                        }}
                     }}
                     
                     body {{
@@ -980,6 +1015,132 @@ class ContestExportPDF(ContestMixin, View):
                         background: #fff;
                         -webkit-print-color-adjust: exact;
                         print-color-adjust: exact;
+                    }}
+                    
+                    .problem-description {{
+                        font-size: 11pt;
+                        line-height: 1.5;
+                        margin-bottom: 5mm;
+                        font-family: inherit;
+                    }}
+                    
+                    .problem-description h1,
+                    .problem-description h2,
+                    .problem-description h3,
+                    .problem-description h4,
+                    .problem-description h5,
+                    .problem-description h6 {{
+                        margin-top: 15px;
+                        margin-bottom: 10px;
+                        font-weight: bold;
+                        line-height: 1.2;
+                    }}
+                    
+                    .problem-description h1 {{
+                        font-size: 1.8em;
+                        border-bottom: 2px solid #ccc;
+                        padding-bottom: 5px;
+                    }}
+                    
+                    .problem-description h2 {{
+                        font-size: 1.5em;
+                        border-bottom: 1px solid #eee;
+                        padding-bottom: 3px;
+                    }}
+                    
+                    .problem-description h3 {{
+                        font-size: 1.3em;
+                    }}
+                    
+                    .problem-description h4 {{
+                        font-size: 1.1em;
+                    }}
+                    
+                    .problem-description p {{
+                        margin: 10px 0;
+                        line-height: 1.5;
+                    }}
+                    
+                    .problem-description ul,
+                    .problem-description ol {{
+                        margin: 10px 0;
+                        padding-left: 30px;
+                    }}
+                    
+                    .problem-description li {{
+                        margin: 5px 0;
+                    }}
+                    
+                    .problem-description code {{
+                        font-family: 'Courier New', 'Consolas', monospace;
+                        background-color: #f5f5f5;
+                        padding: 2px 4px;
+                        border-radius: 3px;
+                        font-size: 0.9em;
+                    }}
+                    
+                    .problem-description pre {{
+                        font-family: 'Courier New', 'Consolas', monospace;
+                        background-color: #f8f8f8;
+                        border: 1px solid #ddd;
+                        border-radius: 4px;
+                        padding: 10px;
+                        overflow: auto;
+                        margin: 15px 0;
+                        font-size: 0.9em;
+                        line-height: 1.3;
+                    }}
+                    
+                    .problem-description pre code {{
+                        background-color: transparent;
+                        padding: 0;
+                        border-radius: 0;
+                    }}
+                    
+                    .problem-description table {{
+                        border-collapse: collapse;
+                        border-spacing: 0;
+                        width: 100%;
+                        margin: 15px 0;
+                        font-size: 0.95em;
+                    }}
+                    
+                    .problem-description table th,
+                    .problem-description table td {{
+                        border: 1px solid #ddd;
+                        padding: 8px 12px;
+                        text-align: left;
+                    }}
+                    
+                    .problem-description table th {{
+                        background-color: #f5f5f5;
+                        font-weight: bold;
+                    }}
+                    
+                    .problem-description blockquote {{
+                        border-left: 4px solid #ddd;
+                        padding-left: 15px;
+                        margin: 15px 0;
+                        color: #666;
+                    }}
+                    
+                    .problem-description a {{
+                        color: #0066cc;
+                        text-decoration: underline;
+                    }}
+                    
+                    .problem-description hr {{
+                        border: 0;
+                        border-top: 1px solid #ddd;
+                        margin: 20px 0;
+                    }}
+                    
+                    .problem-description strong {{
+                        font-weight: bold;
+                    }}
+                    
+                    .problem-description em {{
+                        font-style: italic;
                     }}
                     
                     .cover-page {{
@@ -1185,6 +1346,34 @@ class ContestExportPDF(ContestMixin, View):
                     .text-right {{ text-align: right; }}
                     .bold {{ font-weight: bold; }}
                     .italic {{ font-style: italic; }}
+                    
+                    .problem-description .math,
+                    .problem-description .katex {{
+                        font-size: 1.1em;
+                        text-align: center;
+                        margin: 10px 0;
+                    }}
+                    
+                    .problem-description .katex-display {{
+                        overflow: auto hidden;
+                        padding: 5px 0;
+                    }}
+                    
+                    .problem-description img {{
+                        max-width: 100%;
+                        height: auto;
+                        display: block;
+                        margin: 15px auto;
+                    }}
+                    
+                    .problem-description .task-list-item {{
+                        list-style-type: none;
+                        margin-left: -20px;
+                    }}
+                    
+                    .problem-description .task-list-item-checkbox {{
+                        margin-right: 8px;
+                    }}
                 </style>
             </head>
             <body>
@@ -1230,21 +1419,18 @@ class ContestExportPDF(ContestMixin, View):
                 
                 if problem.description:
                     description = problem.description
-
-                    description_html = mark_safe(markdown.markdown(
-                        description,
-                        extensions=[
-                            'extra',
-                            'codehilite',
-                            'toc',
-                            'nl2br',
+                
+                description_html = mark_safe(markdown.markdown(
+                        re.sub(r'~([^~]+?)~', r'$\1$', description),
+                        extensions = [
+                            'markdown.extensions.extra',
+                            'markdown.extensions.codehilite',
+                            'markdown.extensions.tables',
+                            'markdown.extensions.toc',
+                            'markdown.extensions.nl2br',
+                            'markdown.extensions.sane_lists',
+                            KatexExtension(),
                         ],
-                        extension_configs={
-                            'codehilite': {
-                                'css_class': 'codehilite',
-                                'linenums': False,
-                            },
-                        },
                         output_format='html5'
                     ))
                 
