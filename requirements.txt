@@ -43,3 +43,4 @@ importlib-metadata<5
 
 # This is the requirements for Binghan-customization
 markdown
+markdown-katex
