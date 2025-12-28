@@ -5,12 +5,26 @@ from typing import Optional
 from django.conf import settings
 from django.core.cache import cache
 from django.core.cache.utils import make_template_fragment_key
-from django.db.models.signals import post_delete, post_save
+from django.db.models.signals import post_delete
+from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 from .caching import finished_submission
-from .models import BlogPost, Comment, Contest, ContestProblem, ContestSubmission, EFFECTIVE_MATH_ENGINES, Judge, \
-    Language, License, MiscConfig, Organization, Problem, Profile, Submission, WebAuthnCredential
+from .models import BlogPost
+from .models import Comment
+from .models import Contest
+from .models import ContestProblem
+from .models import ContestSubmission
+from .models import EFFECTIVE_MATH_ENGINES
+from .models import Judge
+from .models import Language
+from .models import License
+from .models import MiscConfig
+from .models import Organization
+from .models import Problem
+from .models import Profile
+from .models import Submission
+from .models import WebAuthnCredential
 
 
 def get_pdf_path(basename: str) -> Optional[str]:
@@ -33,15 +47,24 @@ def problem_update(sender, instance, **kwargs):
     if hasattr(instance, '_updating_stats_only'):
         return
 
-    cache.delete_many([
-        make_template_fragment_key('submission_problem', (instance.id,)),
-        make_template_fragment_key('problem_feed', (instance.id,)),
-        'problem_tls:%s' % instance.id, 'problem_mls:%s' % instance.id,
-    ])
-    cache.delete_many([make_template_fragment_key('problem_html', (instance.id, engine, lang))
-                       for lang, _ in settings.LANGUAGES for engine in EFFECTIVE_MATH_ENGINES])
-    cache.delete_many([make_template_fragment_key('problem_authors', (instance.id, lang))
-                       for lang, _ in settings.LANGUAGES])
+    cache.delete_many(
+        [
+            make_template_fragment_key('submission_problem', (instance.id,)),
+            make_template_fragment_key('problem_feed', (instance.id,)),
+            'problem_tls:%s' % instance.id,
+            'problem_mls:%s' % instance.id,
+        ]
+    )
+    cache.delete_many(
+        [
+            make_template_fragment_key('problem_html', (instance.id, engine, lang))
+            for lang, _ in settings.LANGUAGES
+            for engine in EFFECTIVE_MATH_ENGINES
+        ]
+    )
+    cache.delete_many(
+        [make_template_fragment_key('problem_authors', (instance.id, lang)) for lang, _ in settings.LANGUAGES]
+    )
     cache.delete_many(['generated-meta-problem:%s:%d' % (lang, instance.id) for lang, _ in settings.LANGUAGES])
 
     for lang, _ in settings.LANGUAGES:
@@ -55,10 +78,13 @@ def profile_update(sender, instance, **kwargs):
     if hasattr(instance, '_updating_stats_only'):
         return
 
-    cache.delete_many([make_template_fragment_key('user_about', (instance.id, engine))
-                       for engine in EFFECTIVE_MATH_ENGINES] +
-                      [make_template_fragment_key('org_member_count', (org_id,))
-                       for org_id in instance.organizations.values_list('id', flat=True)])
+    cache.delete_many(
+        [make_template_fragment_key('user_about', (instance.id, engine)) for engine in EFFECTIVE_MATH_ENGINES]
+        + [
+            make_template_fragment_key('org_member_count', (org_id,))
+            for org_id in instance.organizations.values_list('id', flat=True)
+        ]
+    )
 
 
 @receiver(post_delete, sender=WebAuthnCredential)
@@ -74,9 +100,10 @@ def contest_update(sender, instance, **kwargs):
     if hasattr(instance, '_updating_stats_only'):
         return
 
-    cache.delete_many(['generated-meta-contest:%d' % instance.id] +
-                      [make_template_fragment_key('contest_html', (instance.id, engine))
-                       for engine in EFFECTIVE_MATH_ENGINES])
+    cache.delete_many(
+        ['generated-meta-contest:%d' % instance.id]
+        + [make_template_fragment_key('contest_html', (instance.id, engine)) for engine in EFFECTIVE_MATH_ENGINES]
+    )
 
 
 @receiver(post_delete, sender=ContestProblem)
@@ -93,8 +120,7 @@ def license_update(sender, instance, **kwargs):
 
 @receiver(post_save, sender=Language)
 def language_update(sender, instance, **kwargs):
-    cache.delete_many([make_template_fragment_key('language_html', (instance.id,)),
-                       'lang:cn_map'])
+    cache.delete_many([make_template_fragment_key('language_html', (instance.id,)), 'lang:cn_map'])
 
 
 @receiver(post_save, sender=Judge)
@@ -109,13 +135,16 @@ def comment_update(sender, instance, **kwargs):
 
 @receiver(post_save, sender=BlogPost)
 def post_update(sender, instance, **kwargs):
-    cache.delete_many([
-        make_template_fragment_key('post_summary', (instance.id,)),
-        'blog_slug:%d' % instance.id,
-        'blog_feed:%d' % instance.id,
-    ])
-    cache.delete_many([make_template_fragment_key('post_content', (instance.id, engine))
-                       for engine in EFFECTIVE_MATH_ENGINES])
+    cache.delete_many(
+        [
+            make_template_fragment_key('post_summary', (instance.id,)),
+            'blog_slug:%d' % instance.id,
+            'blog_feed:%d' % instance.id,
+        ]
+    )
+    cache.delete_many(
+        [make_template_fragment_key('post_content', (instance.id, engine)) for engine in EFFECTIVE_MATH_ENGINES]
+    )
 
 
 @receiver(post_delete, sender=Submission)
@@ -136,8 +165,9 @@ def contest_submission_delete(sender, instance, **kwargs):
 
 @receiver(post_save, sender=Organization)
 def organization_update(sender, instance, **kwargs):
-    cache.delete_many([make_template_fragment_key('organization_html', (instance.id, engine))
-                       for engine in EFFECTIVE_MATH_ENGINES])
+    cache.delete_many(
+        [make_template_fragment_key('organization_html', (instance.id, engine)) for engine in EFFECTIVE_MATH_ENGINES]
+    )
 
 
 @receiver(post_save, sender=MiscConfig)

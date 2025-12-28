@@ -1,26 +1,31 @@
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.db import IntegrityError
 from django.db.models import F
 from django.forms.models import ModelForm
-from django.http import Http404, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden, HttpResponseNotFound, \
-    HttpResponseRedirect
+from django.http import Http404
+from django.http import HttpResponse
+from django.http import HttpResponseBadRequest
+from django.http import HttpResponseForbidden
+from django.http import HttpResponseNotFound
+from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
-from django.views.generic import DetailView, UpdateView
+from django.views.generic import DetailView
+from django.views.generic import UpdateView
+from judge.dblock import LockModel
+from judge.models import Comment
+from judge.models import CommentVote
+from judge.utils.views import TitleMixin
+from judge.widgets import MartorWidget
 from reversion import revisions
 from reversion.models import Version
 
-from judge.dblock import LockModel
-from judge.models import Comment, CommentVote
-from judge.utils.views import TitleMixin
-from judge.widgets import MartorWidget
-
-__all__ = ['upvote_comment', 'downvote_comment', 'CommentEditAjax', 'CommentContent',
-           'CommentEdit']
+__all__ = ['upvote_comment', 'downvote_comment', 'CommentEditAjax', 'CommentContent', 'CommentEdit']
 
 
 @login_required
@@ -35,8 +40,9 @@ def vote_comment(request, delta):
         return HttpResponseBadRequest()
 
     if not request.user.is_staff and not request.profile.has_any_solves:
-        return HttpResponseBadRequest(_('You must solve at least one problem before you can vote.'),
-                                      content_type='text/plain')
+        return HttpResponseBadRequest(
+            _('You must solve at least one problem before you can vote.'), content_type='text/plain'
+        )
 
     if request.profile.mute:
         return HttpResponseBadRequest(_('Your part is silent, little toad.'), content_type='text/plain')
@@ -177,8 +183,9 @@ class CommentVotesAjax(PermissionRequiredMixin, CommentMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super(CommentVotesAjax, self).get_context_data(**kwargs)
-        context['votes'] = (self.object.votes.select_related('voter__user')
-                            .only('id', 'voter__display_rank', 'voter__user__username', 'score'))
+        context['votes'] = self.object.votes.select_related('voter__user').only(
+            'id', 'voter__display_rank', 'voter__user__username', 'score'
+        )
         return context
 
 

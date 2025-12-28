@@ -3,13 +3,11 @@ import json
 from urllib.parse import quote
 
 from jinja2.ext import Extension
+from judge.highlight_code import highlight_code
+from judge.user_translations import gettext
 from mptt.utils import get_cached_trees
 from statici18n.templatetags.statici18n import inlinei18n
 
-from judge.highlight_code import highlight_code
-from judge.user_translations import gettext
-from . import (camo, datetime, filesize, format, gravatar, language, markdown, rating, reference, render, social,
-               spaceless, submission, timedelta)
 from . import registry
 
 registry.function('str', str)

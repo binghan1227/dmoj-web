@@ -1,4 +1,5 @@
-from operator import attrgetter, itemgetter
+from operator import attrgetter
+from operator import itemgetter
 
 from django import template
 

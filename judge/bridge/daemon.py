@@ -1,15 +1,15 @@
+from functools import partial
 import logging
 import signal
 import threading
-from functools import partial
 
 from django.conf import settings
-
 from judge.bridge.django_handler import DjangoHandler
 from judge.bridge.judge_handler import JudgeHandler
 from judge.bridge.judge_list import JudgeList
 from judge.bridge.server import Server
-from judge.models import Judge, Submission
+from judge.models import Judge
+from judge.models import Submission
 
 logger = logging.getLogger('judge.bridge')
 
@@ -20,8 +20,9 @@ def reset_judges():
 
 def judge_daemon():
     reset_judges()
-    Submission.objects.filter(status__in=Submission.IN_PROGRESS_GRADING_STATUS) \
-        .update(status='IE', result='IE', error=None)
+    Submission.objects.filter(status__in=Submission.IN_PROGRESS_GRADING_STATUS).update(
+        status='IE', result='IE', error=None
+    )
     judges = JudgeList()
 
     judge_server = Server(settings.BRIDGED_JUDGE_ADDRESS, partial(JudgeHandler, judges=judges))

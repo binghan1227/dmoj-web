@@ -3,16 +3,23 @@ from operator import itemgetter
 from celery.result import AsyncResult
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.http import Http404, HttpResponse, HttpResponseBadRequest, HttpResponseRedirect
+from django.http import Http404
+from django.http import HttpResponse
+from django.http import HttpResponseBadRequest
+from django.http import HttpResponseRedirect
 from django.urls import reverse
-from django.utils.html import escape, format_html
+from django.utils.html import escape
+from django.utils.html import format_html
 from django.utils.safestring import mark_safe
-from django.utils.translation import gettext as _, ngettext
+from django.utils.translation import gettext as _
+from django.utils.translation import ngettext
 from django.views.generic import DetailView
 from django.views.generic.detail import BaseDetailView
-
-from judge.models import Language, Submission
-from judge.tasks import apply_submission_filter, rejudge_problem_filter, rescore_problem
+from judge.models import Language
+from judge.models import Submission
+from judge.tasks import apply_submission_filter
+from judge.tasks import rejudge_problem_filter
+from judge.tasks import rescore_problem
 from judge.utils.celery import redirect_to_task_status
 from judge.utils.views import TitleMixin
 from judge.views.problem import ProblemMixin
@@ -50,15 +57,22 @@ class ManageProblemSubmissionView(TitleMixin, ManageProblemSubmissionMixin, Deta
         return _('Managing submissions for %s') % (self.object.name,)
 
     def get_content_title(self):
-        return mark_safe(escape(_('Managing submissions for %s')) % (
-            format_html('<a href="{1}">{0}</a>', self.object.name,
-                        reverse('problem_detail', args=[self.object.code]))))
+        return mark_safe(
+            escape(_('Managing submissions for %s'))
+            % (
+                format_html(
+                    '<a href="{1}">{0}</a>', self.object.name, reverse('problem_detail', args=[self.object.code])
+                )
+            )
+        )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['submission_count'] = self.object.submission_set.count()
-        context['languages'] = [(lang_id, short_name or key) for lang_id, key, short_name in
-                                Language.objects.values_list('id', 'key', 'short_name')]
+        context['languages'] = [
+            (lang_id, short_name or key)
+            for lang_id, key, short_name in Language.objects.values_list('id', 'key', 'short_name')
+        ]
         context['results'] = sorted(map(itemgetter(0), Submission.RESULT))
         return context
 
@@ -90,10 +104,12 @@ class BaseRejudgeSubmissionsView(PermissionRequiredMixin, ManageProblemSubmissio
 
 class RejudgeSubmissionsView(BaseRejudgeSubmissionsView):
     def generate_response(self, id_range, languages, results):
-        status = rejudge_problem_filter.delay(self.object.id, id_range, languages, results,
-                                              user_id=self.request.user.id)
+        status = rejudge_problem_filter.delay(
+            self.object.id, id_range, languages, results, user_id=self.request.user.id
+        )
         return redirect_to_task_status(
-            status, message=_('Rejudging selected submissions for %s...') % (self.object.name,),
+            status,
+            message=_('Rejudging selected submissions for %s...') % (self.object.name,),
             redirect=reverse('problem_submissions_rejudge_success', args=[self.object.code, status.id]),
         )
 
@@ -108,7 +124,8 @@ class RescoreAllSubmissionsView(ManageProblemSubmissionActionMixin, BaseDetailVi
     def perform_action(self):
         status = rescore_problem.delay(self.object.id)
         return redirect_to_task_status(
-            status, message=_('Rescoring all submissions for %s...') % (self.object.name,),
+            status,
+            message=_('Rescoring all submissions for %s...') % (self.object.name,),
             redirect=reverse('problem_submissions_rescore_success', args=[self.object.code, status.id]),
         )
 
@@ -117,8 +134,15 @@ def rejudge_success(request, problem, task_id):
     count = AsyncResult(task_id).result
     if not isinstance(count, int):
         raise Http404()
-    messages.success(request, ngettext('Successfully scheduled %d submission for rejudging.',
-                                       'Successfully scheduled %d submissions for rejudging.', count) % (count,))
+    messages.success(
+        request,
+        ngettext(
+            'Successfully scheduled %d submission for rejudging.',
+            'Successfully scheduled %d submissions for rejudging.',
+            count,
+        )
+        % (count,),
+    )
     return HttpResponseRedirect(reverse('problem_manage_submissions', args=[problem]))
 
 
@@ -126,6 +150,9 @@ def rescore_success(request, problem, task_id):
     count = AsyncResult(task_id).result
     if not isinstance(count, int):
         raise Http404()
-    messages.success(request, ngettext('%d submission was successfully rescored.',
-                                       '%d submissions were successfully rescored.', count) % (count,))
+    messages.success(
+        request,
+        ngettext('%d submission was successfully rescored.', '%d submissions were successfully rescored.', count)
+        % (count,),
+    )
     return HttpResponseRedirect(reverse('problem_manage_submissions', args=[problem]))

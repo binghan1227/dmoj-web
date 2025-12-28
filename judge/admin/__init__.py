@@ -2,20 +2,49 @@ from django.contrib import admin
 from django.contrib.admin.models import LogEntry
 from django.contrib.auth.models import User
 from django.contrib.flatpages.models import FlatPage
-
 from judge.admin.comments import CommentAdmin
-from judge.admin.contest import ContestAdmin, ContestParticipationAdmin, ContestTagAdmin
-from judge.admin.interface import BlogPostAdmin, FlatPageAdmin, LicenseAdmin, LogEntryAdmin, NavigationBarAdmin
-from judge.admin.organization import ClassAdmin, OrganizationAdmin, OrganizationRequestAdmin
-from judge.admin.problem import ProblemAdmin, ProblemPointsVoteAdmin
-from judge.admin.profile import ProfileAdmin, UserAdmin
-from judge.admin.runtime import JudgeAdmin, LanguageAdmin
+from judge.admin.contest import ContestAdmin
+from judge.admin.contest import ContestParticipationAdmin
+from judge.admin.contest import ContestTagAdmin
+from judge.admin.interface import BlogPostAdmin
+from judge.admin.interface import FlatPageAdmin
+from judge.admin.interface import LicenseAdmin
+from judge.admin.interface import LogEntryAdmin
+from judge.admin.interface import NavigationBarAdmin
+from judge.admin.organization import ClassAdmin
+from judge.admin.organization import OrganizationAdmin
+from judge.admin.organization import OrganizationRequestAdmin
+from judge.admin.problem import ProblemAdmin
+from judge.admin.problem import ProblemPointsVoteAdmin
+from judge.admin.profile import ProfileAdmin
+from judge.admin.profile import UserAdmin
+from judge.admin.runtime import JudgeAdmin
+from judge.admin.runtime import LanguageAdmin
 from judge.admin.submission import SubmissionAdmin
-from judge.admin.taxon import ProblemGroupAdmin, ProblemTypeAdmin
+from judge.admin.taxon import ProblemGroupAdmin
+from judge.admin.taxon import ProblemTypeAdmin
 from judge.admin.ticket import TicketAdmin
-from judge.models import BlogPost, Class, Comment, CommentLock, Contest, ContestParticipation, \
-    ContestTag, Judge, Language, License, MiscConfig, NavigationBar, Organization, \
-    OrganizationRequest, Problem, ProblemGroup, ProblemPointsVote, ProblemType, Profile, Submission, Ticket
+from judge.models import BlogPost
+from judge.models import Class
+from judge.models import Comment
+from judge.models import CommentLock
+from judge.models import Contest
+from judge.models import ContestParticipation
+from judge.models import ContestTag
+from judge.models import Judge
+from judge.models import Language
+from judge.models import License
+from judge.models import MiscConfig
+from judge.models import NavigationBar
+from judge.models import Organization
+from judge.models import OrganizationRequest
+from judge.models import Problem
+from judge.models import ProblemGroup
+from judge.models import ProblemPointsVote
+from judge.models import ProblemType
+from judge.models import Profile
+from judge.models import Submission
+from judge.models import Ticket
 
 admin.site.register(BlogPost, BlogPostAdmin)
 admin.site.register(Comment, CommentAdmin)

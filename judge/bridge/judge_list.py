@@ -1,5 +1,5 @@
-import logging
 from collections import namedtuple
+import logging
 from random import random
 from threading import RLock
 
@@ -59,8 +59,9 @@ class JudgeList(object):
         with self.lock:
             old = self.min_tier
             try:
-                self.min_tier = min(judge.tier for judge in self.judges
-                                    if judge.tier is not None and not judge.is_disabled)
+                self.min_tier = min(
+                    judge.tier for judge in self.judges if judge.tier is not None and not judge.is_disabled
+                )
             except ValueError:
                 self.min_tier = None
 

@@ -1,6 +1,6 @@
 import errno
-import os
 from gzip import open as gzip_open
+import os
 from urllib.parse import urljoin
 
 

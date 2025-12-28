@@ -1,5 +1,6 @@
 from django.core.exceptions import ObjectDoesNotExist
-from django.db import migrations, models
+from django.db import migrations
+from django.db import models
 
 
 def populate_revisions(apps, schema_editor):
@@ -12,7 +13,8 @@ def populate_revisions(apps, schema_editor):
         # Therefore, it's safe to all revision counts as zero.
         pass
     else:
-        schema_editor.execute("""\
+        schema_editor.execute(
+            """\
 UPDATE `judge_comment` INNER JOIN (
     SELECT CAST(`reversion_version`.`object_id` AS INT) AS `id`, COUNT(*) AS `count`
     FROM `reversion_version`
@@ -21,7 +23,9 @@ UPDATE `judge_comment` INNER JOIN (
     GROUP BY 1
 ) `versions` ON (`judge_comment`.`id` = `versions`.`id`)
 SET `judge_comment`.`revisions` = `versions`.`count`;
-""", (content_type.id, db_alias))
+""",
+            (content_type.id, db_alias),
+        )
 
 
 class Migration(migrations.Migration):

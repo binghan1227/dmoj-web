@@ -1,22 +1,28 @@
+from html import unescape
 import logging
 import re
-from html import unescape
 from urllib.parse import urlparse
 
-import mistune
 from bleach.css_sanitizer import CSSSanitizer
 from bleach.sanitizer import Cleaner
 from django.conf import settings
-from lxml import html
-from lxml.etree import ParserError, XMLSyntaxError
-from markupsafe import Markup
-
 from judge.highlight_code import highlight_code
 from judge.jinja2.markdown.lazy_load import lazy_load as lazy_load_processor
-from judge.jinja2.markdown.math import MathInlineGrammar, MathInlineLexer, MathRenderer
+from judge.jinja2.markdown.math import MathInlineGrammar
+from judge.jinja2.markdown.math import MathInlineLexer
+from judge.jinja2.markdown.math import MathRenderer
 from judge.utils.camo import client as camo_client
-from judge.utils.texoid import TEXOID_ENABLED, TexoidRenderer
-from .bleach_whitelist import all_styles, mathml_attrs, mathml_tags
+from judge.utils.texoid import TEXOID_ENABLED
+from judge.utils.texoid import TexoidRenderer
+from lxml import html
+from lxml.etree import ParserError
+from lxml.etree import XMLSyntaxError
+from markupsafe import Markup
+import mistune
+
+from .bleach_whitelist import all_styles
+from .bleach_whitelist import mathml_attrs
+from .bleach_whitelist import mathml_tags
 from .. import registry
 
 logger = logging.getLogger('judge.html')
@@ -80,23 +86,29 @@ class AwesomeRenderer(MathRenderer, mistune.Renderer):
 
     def block_html(self, html):
         if self.texoid and html.startswith('<latex'):
-            attr = html[6:html.index('>')]
-            latex = html[html.index('>') + 1:html.rindex('<')]
+            attr = html[6 : html.index('>')]
+            latex = html[html.index('>') + 1 : html.rindex('<')]
             latex = unescape(latex)
             result = self.texoid.get_result(latex)
             if not result:
                 return '<pre>%s</pre>' % mistune.escape(latex, smart_amp=False)
             elif 'error' not in result:
-                img = ('''<img src="%(svg)s" onerror="this.src='%(png)s';this.onerror=null"'''
-                       'class="tex-full" width="%(width)s" height="%(height)s"%(tail)s>') % {
-                    'svg': result['svg'], 'png': result['png'],
-                    'width': result['meta']['width'], 'height': result['meta']['height'],
+                img = (
+                    '''<img src="%(svg)s" onerror="this.src='%(png)s';this.onerror=null"'''
+                    'class="tex-full" width="%(width)s" height="%(height)s"%(tail)s>'
+                ) % {
+                    'svg': result['svg'],
+                    'png': result['png'],
+                    'width': result['meta']['width'],
+                    'height': result['meta']['height'],
                     'tail': ' /' if self.options.get('use_xhtml') else '',
                 }
-                style = ['max-width: 100%',
-                         'height: %s' % result['meta']['height'],
-                         'max-height: %s' % result['meta']['height'],
-                         'width: %s' % result['meta']['width']]
+                style = [
+                    'max-width: 100%',
+                    'height: %s' % result['meta']['height'],
+                    'max-height: %s' % result['meta']['height'],
+                    'width: %s' % result['meta']['width'],
+                ]
                 if 'inline' in attr:
                     tag = 'span'
                 else:
@@ -161,7 +173,7 @@ def strip_paragraphs_tags(tree):
 
 
 def fragment_tree_to_str(tree):
-    return html.tostring(tree, encoding='unicode')[len('<div>'):-len('</div>')]
+    return html.tostring(tree, encoding='unicode')[len('<div>') : -len('</div>')]
 
 
 @registry.filter
@@ -179,10 +191,10 @@ def markdown(value, style, math_engine=None, lazy_load=False, strip_paragraphs=F
     if lazy_load:
         post_processors.append(lazy_load_processor)
 
-    renderer = AwesomeRenderer(escape=escape, nofollow=nofollow, texoid=texoid,
-                               math=math and math_engine is not None, math_engine=math_engine)
-    markdown = mistune.Markdown(renderer=renderer, inline=AwesomeInlineLexer,
-                                parse_block_html=1, parse_inline_html=1)
+    renderer = AwesomeRenderer(
+        escape=escape, nofollow=nofollow, texoid=texoid, math=math and math_engine is not None, math_engine=math_engine
+    )
+    markdown = mistune.Markdown(renderer=renderer, inline=AwesomeInlineLexer, parse_block_html=1, parse_inline_html=1)
     result = markdown(value)
 
     if post_processors or strip_paragraphs:

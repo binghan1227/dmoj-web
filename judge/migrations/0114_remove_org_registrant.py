@@ -12,7 +12,6 @@ def make_admin_registrant(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('judge', '0113_contest_decimal_points'),
     ]

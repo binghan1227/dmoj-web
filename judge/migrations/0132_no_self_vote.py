@@ -1,5 +1,8 @@
 from django.db import migrations
-from django.db.models import F, OuterRef, Subquery, Sum
+from django.db.models import F
+from django.db.models import OuterRef
+from django.db.models import Subquery
+from django.db.models import Sum
 from django.db.models.functions import Coalesce
 
 
@@ -15,7 +18,6 @@ def delete_self_votes(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('judge', '0131_spectate_contests'),
     ]

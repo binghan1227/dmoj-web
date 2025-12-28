@@ -1,6 +1,7 @@
-from django.core.management.base import BaseCommand, CommandError
-
-from judge.models import Language, LanguageLimit
+from django.core.management.base import BaseCommand
+from django.core.management.base import CommandError
+from judge.models import Language
+from judge.models import LanguageLimit
 
 
 class Command(BaseCommand):
@@ -22,6 +23,7 @@ class Command(BaseCommand):
             raise CommandError('Invalid target language: %s' % options['target'])
 
         target.problem_set.set(source.problem_set.all())
-        LanguageLimit.objects.bulk_create(LanguageLimit(problem=ll.problem, language=target, time_limit=ll.time_limit,
-                                                        memory_limit=ll.memory_limit)
-                                          for ll in LanguageLimit.objects.filter(language=source))
+        LanguageLimit.objects.bulk_create(
+            LanguageLimit(problem=ll.problem, language=target, time_limit=ll.time_limit, memory_limit=ll.memory_limit)
+            for ll in LanguageLimit.objects.filter(language=source)
+        )

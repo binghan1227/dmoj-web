@@ -1,11 +1,21 @@
 from django.core.exceptions import ValidationError
-from django.test import SimpleTestCase, TestCase
+from django.test import SimpleTestCase
+from django.test import TestCase
 from django.utils import timezone
-
-from judge.models import Language, LanguageLimit, Problem, Submission
-from judge.models.problem import VotePermission, disallowed_characters_validator
-from judge.models.tests.util import CommonDataMixin, create_contest, create_contest_participation, \
-    create_organization, create_problem, create_problem_type, create_solution, create_user
+from judge.models import Language
+from judge.models import LanguageLimit
+from judge.models import Problem
+from judge.models import Submission
+from judge.models.problem import disallowed_characters_validator
+from judge.models.problem import VotePermission
+from judge.models.tests.util import CommonDataMixin
+from judge.models.tests.util import create_contest
+from judge.models.tests.util import create_contest_participation
+from judge.models.tests.util import create_organization
+from judge.models.tests.util import create_problem
+from judge.models.tests.util import create_problem_type
+from judge.models.tests.util import create_solution
+from judge.models.tests.util import create_user
 
 
 class ProblemTestCase(CommonDataMixin, TestCase):
@@ -13,13 +23,15 @@ class ProblemTestCase(CommonDataMixin, TestCase):
     def setUpTestData(self):
         super().setUpTestData()
 
-        self.users.update({
-            'staff_problem_edit_only_all': create_user(
-                username='staff_problem_edit_only_all',
-                is_staff=True,
-                user_permissions=('edit_all_problem',),
-            ),
-        })
+        self.users.update(
+            {
+                'staff_problem_edit_only_all': create_user(
+                    username='staff_problem_edit_only_all',
+                    is_staff=True,
+                    user_permissions=('edit_all_problem',),
+                ),
+            }
+        )
 
         create_problem_type(name='type')
 
@@ -330,12 +342,14 @@ class SolutionTestCase(CommonDataMixin, TestCase):
     @classmethod
     def setUpTestData(self):
         super().setUpTestData()
-        self.users.update({
-            'staff_solution_see_all': create_user(
-                username='staff_solution_see_all',
-                user_permissions=('see_private_solution',),
-            ),
-        })
+        self.users.update(
+            {
+                'staff_solution_see_all': create_user(
+                    username='staff_solution_see_all',
+                    user_permissions=('see_private_solution',),
+                ),
+            }
+        )
 
         now = timezone.now()
 
@@ -436,7 +450,7 @@ class DisallowedCharactersValidatorTestCase(SimpleTestCase):
     def test_valid(self):
         with self.settings(DMOJ_PROBLEM_STATEMENT_DISALLOWED_CHARACTERS={'“', '”', '‘', '’'}):
             self.assertIsNone(disallowed_characters_validator(''))
-            self.assertIsNone(disallowed_characters_validator('"\'string\''))
+            self.assertIsNone(disallowed_characters_validator("\"'string'"))
 
         with self.settings(DMOJ_PROBLEM_STATEMENT_DISALLOWED_CHARACTERS=set()):
             self.assertIsNone(disallowed_characters_validator(''))

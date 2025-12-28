@@ -3,11 +3,12 @@ from django.db.models import Q
 from django.forms import ModelForm
 from django.urls import reverse_lazy
 from django.utils.html import format_html
-from django.utils.translation import gettext, gettext_lazy as _
-from reversion.admin import VersionAdmin
-
+from django.utils.translation import gettext
+from django.utils.translation import gettext_lazy as _
 from judge.models import Organization
-from judge.widgets import AdminHeavySelect2MultipleWidget, AdminMartorWidget
+from judge.widgets import AdminHeavySelect2MultipleWidget
+from judge.widgets import AdminMartorWidget
+from reversion.admin import VersionAdmin
 
 
 class ClassForm(ModelForm):
@@ -27,22 +28,25 @@ class ClassAdmin(VersionAdmin):
         queryset = super().get_queryset(request)
         if not request.user.has_perm('judge.edit_all_organization'):
             queryset = queryset.filter(
-                Q(admins__id=request.profile.id) |
-                Q(organization__admins__id=request.profile.id),
+                Q(admins__id=request.profile.id) | Q(organization__admins__id=request.profile.id),
             ).distinct()
         return queryset
 
     def has_add_permission(self, request):
-        return (request.user.has_perm('judge.add_class') and
-                Organization.objects.filter(admins__id=request.profile.id).exists())
+        return (
+            request.user.has_perm('judge.add_class')
+            and Organization.objects.filter(admins__id=request.profile.id).exists()
+        )
 
     def has_change_permission(self, request, obj=None):
         if not request.user.has_perm('judge.change_class'):
             return False
         if request.user.has_perm('judge.edit_all_organization') or obj is None:
             return True
-        return (obj.admins.filter(id=request.profile.id).exists() or
-                obj.organization.admins.filter(id=request.profile.id).exists())
+        return (
+            obj.admins.filter(id=request.profile.id).exists()
+            or obj.organization.admins.filter(id=request.profile.id).exists()
+        )
 
     def get_readonly_fields(self, request, obj=None):
         fields = []
@@ -69,8 +73,18 @@ class OrganizationForm(ModelForm):
 
 class OrganizationAdmin(VersionAdmin):
     readonly_fields = ('creation_date',)
-    fields = ('name', 'slug', 'short_name', 'is_open', 'class_required', 'about', 'logo_override_image', 'slots',
-              'creation_date', 'admins')
+    fields = (
+        'name',
+        'slug',
+        'short_name',
+        'is_open',
+        'class_required',
+        'about',
+        'logo_override_image',
+        'slots',
+        'creation_date',
+        'admins',
+    )
     list_display = ('name', 'short_name', 'is_open', 'slots', 'show_public')
     prepopulated_fields = {'slug': ('name',)}
     actions_on_top = True
@@ -79,8 +93,9 @@ class OrganizationAdmin(VersionAdmin):
 
     @admin.display(description='')
     def show_public(self, obj):
-        return format_html('<a href="{0}" style="white-space:nowrap;">{1}</a>',
-                           obj.get_absolute_url(), gettext('View on site'))
+        return format_html(
+            '<a href="{0}" style="white-space:nowrap;">{1}</a>', obj.get_absolute_url(), gettext('View on site')
+        )
 
     def get_readonly_fields(self, request, obj=None):
         fields = self.readonly_fields

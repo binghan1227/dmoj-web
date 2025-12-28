@@ -1,4 +1,5 @@
-from collections import OrderedDict, defaultdict
+from collections import defaultdict
+from collections import OrderedDict
 from operator import attrgetter
 
 from django.conf import settings
@@ -9,41 +10,75 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
-
-from judge.judgeapi import disconnect_judge, update_disable_judge
+from judge.judgeapi import disconnect_judge
+from judge.judgeapi import update_disable_judge
 
 __all__ = ['Language', 'RuntimeVersion', 'Judge']
 
 
 class Language(models.Model):
-    key = models.CharField(max_length=6, verbose_name=_('short identifier'),
-                           help_text=_('The identifier for this language; the same as its executor id for judges.'),
-                           unique=True)
-    name = models.CharField(max_length=20, verbose_name=_('long name'),
-                            help_text=_('Longer name for the language, e.g. "Python 2" or "C++11".'))
-    short_name = models.CharField(max_length=10, verbose_name=_('short name'),
-                                  help_text=_('More readable, but short, name to display publicly; e.g. "PY2" or '
-                                              '"C++11". If left blank, it will default to the '
-                                              'short identifier.'),
-                                  null=True, blank=True)
-    common_name = models.CharField(max_length=10, verbose_name=_('common name'),
-                                   help_text=_('Common name for the language. For example, the common name for C++03, '
-                                               'C++11, and C++14 would be "C++".'))
-    ace = models.CharField(max_length=20, verbose_name=_('ace mode name'),
-                           help_text=_('Language ID for Ace.js editor highlighting, appended to "mode-" to determine '
-                                       'the Ace JavaScript file to use, e.g., "python".'))
-    pygments = models.CharField(max_length=20, verbose_name=_('pygments name'),
-                                help_text=_('Language ID for Pygments highlighting in source windows.'))
-    template = models.TextField(verbose_name=_('code template'),
-                                help_text=_('Code template to display in submission editor.'), blank=True)
-    info = models.CharField(max_length=50, verbose_name=_('runtime info override'), blank=True,
-                            help_text=_("Do not set this unless you know what you're doing! It will override the "
-                                        'usually more specific, judge-provided runtime info!'))
-    description = models.TextField(verbose_name=_('language description'),
-                                   help_text=_('Use this field to inform users of quirks with your environment, '
-                                               'additional restrictions, etc.'), blank=True)
-    extension = models.CharField(max_length=10, verbose_name=_('extension'),
-                                 help_text=_('The extension of source files, e.g., "py" or "cpp".'))
+    key = models.CharField(
+        max_length=6,
+        verbose_name=_('short identifier'),
+        help_text=_('The identifier for this language; the same as its executor id for judges.'),
+        unique=True,
+    )
+    name = models.CharField(
+        max_length=20,
+        verbose_name=_('long name'),
+        help_text=_('Longer name for the language, e.g. "Python 2" or "C++11".'),
+    )
+    short_name = models.CharField(
+        max_length=10,
+        verbose_name=_('short name'),
+        help_text=_(
+            'More readable, but short, name to display publicly; e.g. "PY2" or '
+            '"C++11". If left blank, it will default to the '
+            'short identifier.'
+        ),
+        null=True,
+        blank=True,
+    )
+    common_name = models.CharField(
+        max_length=10,
+        verbose_name=_('common name'),
+        help_text=_(
+            'Common name for the language. For example, the common name for C++03, C++11, and C++14 would be "C++".'
+        ),
+    )
+    ace = models.CharField(
+        max_length=20,
+        verbose_name=_('ace mode name'),
+        help_text=_(
+            'Language ID for Ace.js editor highlighting, appended to "mode-" to determine '
+            'the Ace JavaScript file to use, e.g., "python".'
+        ),
+    )
+    pygments = models.CharField(
+        max_length=20,
+        verbose_name=_('pygments name'),
+        help_text=_('Language ID for Pygments highlighting in source windows.'),
+    )
+    template = models.TextField(
+        verbose_name=_('code template'), help_text=_('Code template to display in submission editor.'), blank=True
+    )
+    info = models.CharField(
+        max_length=50,
+        verbose_name=_('runtime info override'),
+        blank=True,
+        help_text=_(
+            "Do not set this unless you know what you're doing! It will override the "
+            'usually more specific, judge-provided runtime info!'
+        ),
+    )
+    description = models.TextField(
+        verbose_name=_('language description'),
+        help_text=_('Use this field to inform users of quirks with your environment, additional restrictions, etc.'),
+        blank=True,
+    )
+    extension = models.CharField(
+        max_length=10, verbose_name=_('extension'), help_text=_('The extension of source files, e.g., "py" or "cpp".')
+    )
 
     def runtime_versions(self):
         runtimes = OrderedDict()
@@ -121,24 +156,39 @@ class RuntimeVersion(models.Model):
 
 
 class Judge(models.Model):
-    name = models.CharField(max_length=50, verbose_name=_('judge name'), help_text=_('Server name, hostname-style.'),
-                            unique=True)
+    name = models.CharField(
+        max_length=50, verbose_name=_('judge name'), help_text=_('Server name, hostname-style.'), unique=True
+    )
     created = models.DateTimeField(auto_now_add=True, verbose_name=_('time of creation'))
-    auth_key = models.CharField(max_length=100, help_text=_('A key to authenticate this judge.'),
-                                verbose_name=_('authentication key'))
-    is_blocked = models.BooleanField(verbose_name=_('block judge'), default=False,
-                                     help_text=_('Whether this judge should be blocked from connecting, '
-                                                 'even if its key is correct.'))
-    is_disabled = models.BooleanField(verbose_name=_('disable judge'), default=False,
-                                      help_text=_('Whether this judge should be removed from judging queue.'))
-    tier = models.PositiveIntegerField(verbose_name=_('judge tier'), default=1,
-                                       help_text=_('The tier of this judge. Only online judges of the minimum tier '
-                                                   'will be used. This is used for high-availability.'))
+    auth_key = models.CharField(
+        max_length=100, help_text=_('A key to authenticate this judge.'), verbose_name=_('authentication key')
+    )
+    is_blocked = models.BooleanField(
+        verbose_name=_('block judge'),
+        default=False,
+        help_text=_('Whether this judge should be blocked from connecting, even if its key is correct.'),
+    )
+    is_disabled = models.BooleanField(
+        verbose_name=_('disable judge'),
+        default=False,
+        help_text=_('Whether this judge should be removed from judging queue.'),
+    )
+    tier = models.PositiveIntegerField(
+        verbose_name=_('judge tier'),
+        default=1,
+        help_text=_(
+            'The tier of this judge. Only online judges of the minimum tier '
+            'will be used. This is used for high-availability.'
+        ),
+    )
     online = models.BooleanField(verbose_name=_('judge online status'), default=False)
     start_time = models.DateTimeField(verbose_name=_('judge start time'), null=True)
     ping = models.FloatField(verbose_name=_('response time'), null=True)
-    load = models.FloatField(verbose_name=_('system load'), null=True,
-                             help_text=_('Load for the last minute, divided by processors to be fair.'))
+    load = models.FloatField(
+        verbose_name=_('system load'),
+        null=True,
+        help_text=_('Load for the last minute, divided by processors to be fair.'),
+    )
     description = models.TextField(blank=True, verbose_name=_('description'))
     last_ip = models.GenericIPAddressField(verbose_name=_('last connected IP'), blank=True, null=True)
     problems = models.ManyToManyField('Problem', verbose_name=_('problems'), related_name='judges')
@@ -161,9 +211,11 @@ class Judge(models.Model):
 
     @classmethod
     def runtime_versions(cls):
-        qs = (RuntimeVersion.objects.filter(judge__online=True)
-              .values('judge__name', 'language__key', 'language__name', 'version', 'name')
-              .order_by('language__name', 'priority'))
+        qs = (
+            RuntimeVersion.objects.filter(judge__online=True)
+            .values('judge__name', 'language__key', 'language__name', 'version', 'name')
+            .order_by('language__name', 'priority')
+        )
 
         ret = defaultdict(OrderedDict)
 

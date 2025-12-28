@@ -7,8 +7,10 @@ from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from django.views import View
 from django.views.generic import TemplateView
-
-from judge.models import Language, Problem, Submission, SubmissionSource
+from judge.models import Language
+from judge.models import Problem
+from judge.models import Submission
+from judge.models import SubmissionSource
 from judge.utils.views import TitleMixin
 
 __all__ = ['IDEView', 'IDESubmitView', 'IDESubmissionStatus']
@@ -31,14 +33,19 @@ class IDEView(LoginRequiredMixin, TitleMixin, TemplateView):
     """
     Main IDE page with code editor, input editor, and output display.
     """
+
     template_name = 'ide/ide.html'
     title = 'IDE'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['languages'] = Language.objects.filter(
-            judges__online=True,
-        ).distinct().order_by('name', 'key')
+        context['languages'] = (
+            Language.objects.filter(
+                judges__online=True,
+            )
+            .distinct()
+            .order_by('name', 'key')
+        )
         context['ACE_URL'] = settings.ACE_URL
         context['default_lang'] = self.request.profile.language
         context['ace_theme'] = self.request.profile.resolved_ace_theme
@@ -58,10 +65,12 @@ class IDESubmitView(LoginRequiredMixin, View):
         current_count = cache.get(cache_key, 0)
 
         if current_count >= IDE_RATE_LIMIT_COUNT:
-            return JsonResponse({
-                'error':
-                f'Rate limit exceeded. Maximum {IDE_RATE_LIMIT_COUNT} runs per {IDE_RATE_LIMIT_WINDOW} minute(s).',
-            }, status=429)
+            return JsonResponse(
+                {
+                    'error': f'Rate limit exceeded. Maximum {IDE_RATE_LIMIT_COUNT} runs per {IDE_RATE_LIMIT_WINDOW} minute(s).',
+                },
+                status=429,
+            )
 
         # Parse request
         source_code = request.POST.get('source', '')
@@ -70,38 +79,56 @@ class IDESubmitView(LoginRequiredMixin, View):
 
         # Validation
         if not source_code or len(source_code) > 65536:
-            return JsonResponse({
-                'error': 'Source code must be between 1 and 65536 characters.',
-            }, status=400)
+            return JsonResponse(
+                {
+                    'error': 'Source code must be between 1 and 65536 characters.',
+                },
+                status=400,
+            )
 
         if len(custom_input) > 65536:
-            return JsonResponse({
-                'error': 'Input must be at most 65536 characters.',
-            }, status=400)
+            return JsonResponse(
+                {
+                    'error': 'Input must be at most 65536 characters.',
+                },
+                status=400,
+            )
 
         try:
             language = Language.objects.get(id=language_id, judges__online=True)
         except Language.DoesNotExist:
-            return JsonResponse({
-                'error': 'Invalid or unavailable language.',
-            }, status=400)
+            return JsonResponse(
+                {
+                    'error': 'Invalid or unavailable language.',
+                },
+                status=400,
+            )
 
         # Get IDE problem
         try:
             ide_problem = Problem.objects.get(code=IDE_PROBLEM_CODE)
         except Problem.DoesNotExist:
-            return JsonResponse({
-                'error': 'IDE feature not configured. Contact administrator.',
-            }, status=500)
+            return JsonResponse(
+                {
+                    'error': 'IDE feature not configured. Contact administrator.',
+                },
+                status=500,
+            )
 
         # Check global submission limit (reuse existing spam check)
-        if (not request.user.has_perm('judge.spam_submission') and
-            Submission.objects.filter(user=request.profile, rejudged_date__isnull=True)
-                              .exclude(status__in=['D', 'IE', 'CE', 'AB'])
-                              .count() >= settings.DMOJ_SUBMISSION_LIMIT):
-            return JsonResponse({
-                'error': 'You have too many submissions in queue. Please wait.',
-            }, status=429)
+        if (
+            not request.user.has_perm('judge.spam_submission')
+            and Submission.objects.filter(user=request.profile, rejudged_date__isnull=True)
+            .exclude(status__in=['D', 'IE', 'CE', 'AB'])
+            .count()
+            >= settings.DMOJ_SUBMISSION_LIMIT
+        ):
+            return JsonResponse(
+                {
+                    'error': 'You have too many submissions in queue. Please wait.',
+                },
+                status=429,
+            )
 
         # Create submission
         with transaction.atomic():
@@ -131,11 +158,13 @@ class IDESubmitView(LoginRequiredMixin, View):
         else:
             cache.incr(cache_key)
 
-        return JsonResponse({
-            'success': True,
-            'submission_id': submission.id,
-            'submission_url': reverse('ide_submission_status', args=[submission.id]),
-        })
+        return JsonResponse(
+            {
+                'success': True,
+                'submission_id': submission.id,
+                'submission_url': reverse('ide_submission_status', args=[submission.id]),
+            }
+        )
 
 
 class IDESubmissionStatus(LoginRequiredMixin, View):

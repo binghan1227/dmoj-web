@@ -5,10 +5,9 @@ from django.db import models
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from judge.models.profile import Profile
 from mptt.fields import TreeForeignKey
 from mptt.models import MPTTModel
-
-from judge.models.profile import Profile
 
 __all__ = ['MiscConfig', 'validate_regex', 'NavigationBar', 'BlogPost']
 
@@ -45,8 +44,9 @@ class NavigationBar(MPTTModel):
     label = models.CharField(max_length=20, verbose_name=_('label'))
     path = models.CharField(max_length=255, verbose_name=_('link path'))
     regex = models.TextField(verbose_name=_('highlight regex'), validators=[validate_regex])
-    parent = TreeForeignKey('self', verbose_name=_('parent item'), null=True, blank=True,
-                            related_name='children', on_delete=models.CASCADE)
+    parent = TreeForeignKey(
+        'self', verbose_name=_('parent item'), null=True, blank=True, related_name='children', on_delete=models.CASCADE
+    )
 
     def __str__(self):
         return self.label

@@ -1,7 +1,8 @@
-import functools
 from datetime import timezone
+import functools
 
-from django.template.defaultfilters import date, time
+from django.template.defaultfilters import date
+from django.template.defaultfilters import time
 from django.templatetags.tz import localtime
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
@@ -27,6 +28,8 @@ registry.filter(localtime_wrapper(time))
 @registry.function
 def relative_time(time, **kwargs):
     abs_time = date(time, kwargs.get('format', _('N j, Y, g:i a')))
-    return mark_safe(f'<span data-iso="{time.astimezone(timezone.utc).isoformat()}" class="time-with-rel"'
-                     f' title="{escape(abs_time)}" data-format="{escape(kwargs.get("rel", _("{time}")))}">'
-                     f'{escape(kwargs.get("abs", _("on {time}")).replace("{time}", abs_time))}</span>')
+    return mark_safe(
+        f'<span data-iso="{time.astimezone(timezone.utc).isoformat()}" class="time-with-rel"'
+        f' title="{escape(abs_time)}" data-format="{escape(kwargs.get("rel", _("{time}")))}">'
+        f'{escape(kwargs.get("abs", _("on {time}")).replace("{time}", abs_time))}</span>'
+    )

@@ -1,5 +1,5 @@
-import unittest
 from itertools import chain
+import unittest
 
 from judge.utils.iterator import chunk
 

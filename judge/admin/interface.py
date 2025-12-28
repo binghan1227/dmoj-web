@@ -3,15 +3,19 @@ from django.contrib.auth.models import User
 from django.contrib.flatpages.admin import FlatPageAdmin as OldFlatPageAdmin
 from django.contrib.flatpages.forms import FlatpageForm as OldFlatpageForm
 from django.forms import ModelForm
-from django.urls import NoReverseMatch, reverse, reverse_lazy
+from django.urls import NoReverseMatch
+from django.urls import reverse
+from django.urls import reverse_lazy
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
+from judge.dblock import LockModel
+from judge.models import BlogPost
+from judge.models import NavigationBar
+from judge.widgets import AdminHeavySelect2MultipleWidget
+from judge.widgets import AdminHeavySelect2Widget
+from judge.widgets import AdminMartorWidget
 from mptt.admin import DraggableMPTTAdmin
 from reversion.admin import VersionAdmin
-
-from judge.dblock import LockModel
-from judge.models import BlogPost, NavigationBar
-from judge.widgets import AdminHeavySelect2MultipleWidget, AdminHeavySelect2Widget, AdminMartorWidget
 
 
 class NavigationBarAdmin(DraggableMPTTAdmin):
@@ -158,8 +162,11 @@ class LogEntryAdmin(admin.ModelAdmin):
         else:
             ct = obj.content_type
             try:
-                link = format_html('<a href="{1}">{0}</a>', obj.object_repr,
-                                   reverse('admin:%s_%s_change' % (ct.app_label, ct.model), args=(obj.object_id,)))
+                link = format_html(
+                    '<a href="{1}">{0}</a>',
+                    obj.object_repr,
+                    reverse('admin:%s_%s_change' % (ct.app_label, ct.model), args=(obj.object_id,)),
+                )
             except NoReverseMatch:
                 link = obj.object_repr
         return link

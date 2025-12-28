@@ -1,5 +1,9 @@
 import re
-from typing import Any, Dict, List, Optional, Pattern
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Pattern
 
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
@@ -15,8 +19,11 @@ def validate_email_domain(email: str) -> None:
     if '@' in email:
         domain = email.split('@')[-1].lower()
         if domain in settings.BAD_MAIL_PROVIDERS or any(regex.match(domain) for regex in bad_mail_regex):
-            raise ValidationError(gettext('Your email provider is not allowed due to history of abuse. '
-                                          'Please use a reputable email provider.'))
+            raise ValidationError(
+                gettext(
+                    'Your email provider is not allowed due to history of abuse. Please use a reputable email provider.'
+                )
+            )
 
 
 # Inspired by django.contrib.auth.forms.PasswordResetForm.send_mail

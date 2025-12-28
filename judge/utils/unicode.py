@@ -1,4 +1,6 @@
-from typing import AnyStr, Optional, overload
+from typing import AnyStr
+from typing import Optional
+from typing import overload
 
 
 @overload

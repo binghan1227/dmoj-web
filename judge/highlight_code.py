@@ -14,9 +14,11 @@ try:
     import pygments.formatters
     import pygments.util
 except ImportError:
+
     def highlight_code(code, language, cssclass=None):
         return _make_pre_code(code)
 else:
+
     def highlight_code(code, language, cssclass='codehilite'):
         try:
             lexer = pygments.lexers.get_lexer_by_name(language)

@@ -82,7 +82,6 @@ def update_language_extensions(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('judge', '0111_blank_assignees_ticket'),
     ]

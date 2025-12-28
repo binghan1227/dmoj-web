@@ -34,11 +34,12 @@ import csv
 from pathlib import Path
 
 from django.contrib.auth.models import User
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
+from django.core.management.base import CommandError
 from django.db import transaction
 from django.db.utils import IntegrityError
-
-from judge.models import Organization, Profile
+from judge.models import Organization
+from judge.models import Profile
 
 
 class DryRunRollback(Exception):
@@ -113,8 +114,7 @@ class Command(BaseCommand):
             )
             if org is None:
                 raise CommandError(
-                    'Organization not found. Provide a valid --org-slug/--org-name'
-                    ' or use --create-org-if-missing.',
+                    'Organization not found. Provide a valid --org-slug/--org-name or use --create-org-if-missing.',
                 )
 
         rows = self._read_csv(csv_path)
@@ -127,7 +127,7 @@ class Command(BaseCommand):
         self.stdout.write(
             self.style.NOTICE(
                 f'Importing {len(rows)} users from {csv_path}'
-                f" (dry-run={opts['dry_run']}, update-existing={opts['update_existing']})",
+                f' (dry-run={opts["dry_run"]}, update-existing={opts["update_existing"]})',
             ),
         )
         if org:
@@ -187,7 +187,7 @@ class Command(BaseCommand):
             missing = required - headers
             if missing:
                 raise CommandError(
-                    f"CSV missing required headers: {', '.join(sorted(missing))}",
+                    f'CSV missing required headers: {", ".join(sorted(missing))}',
                 )
             for raw in reader:
                 row = {k.strip(): (v or '').strip() for k, v in raw.items()}

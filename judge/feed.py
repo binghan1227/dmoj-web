@@ -4,9 +4,10 @@ from django.contrib.syndication.views import Feed
 from django.core.cache import cache
 from django.utils import timezone
 from django.utils.feedgenerator import Atom1Feed
-
 from judge.jinja2.markdown import markdown
-from judge.models import BlogPost, Comment, Problem
+from judge.models import BlogPost
+from judge.models import Comment
+from judge.models import Problem
 
 
 class ProblemFeed(Feed):

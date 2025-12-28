@@ -1,27 +1,35 @@
 import base64
+from io import BytesIO
 import json
 import os
-from io import BytesIO
 
-import pyotp
-import qrcode
-import webauthn
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import RedirectURLMixin
-from django.http import Http404, HttpResponse, HttpResponseBadRequest, HttpResponseRedirect, JsonResponse
+from django.http import Http404
+from django.http import HttpResponse
+from django.http import HttpResponseBadRequest
+from django.http import HttpResponseRedirect
+from django.http import JsonResponse
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
-from django.utils.translation import gettext as _, gettext_lazy
-from django.views.generic import FormView, View
+from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy
+from django.views.generic import FormView
+from django.views.generic import View
 from django.views.generic.base import ContextMixin
 from django.views.generic.detail import SingleObjectMixin
-
-from judge.forms import TOTPEnableForm, TOTPForm, TwoFactorLoginForm
+from judge.forms import TOTPEnableForm
+from judge.forms import TOTPForm
+from judge.forms import TwoFactorLoginForm
 from judge.jinja2.gravatar import gravatar
 from judge.models import WebAuthnCredential
-from judge.utils.two_factor import WebAuthnJSONEncoder, webauthn_encode
+from judge.utils.two_factor import webauthn_encode
+from judge.utils.two_factor import WebAuthnJSONEncoder
 from judge.utils.views import TitleMixin
+import pyotp
+import qrcode
+import webauthn
 
 
 class TOTPView(TitleMixin, LoginRequiredMixin, FormView):
@@ -153,10 +161,13 @@ class WebAuthnAttestationView(WebAuthnView):
             icon_url=gravatar(request.user.email),
             attestation='none',
         ).registration_dict
-        data['excludeCredentials'] = [{
-            'type': 'public-key',
-            'id': {'_bytes': credential.cred_id},
-        } for credential in request.profile.webauthn_credentials.all()]
+        data['excludeCredentials'] = [
+            {
+                'type': 'public-key',
+                'id': {'_bytes': credential.cred_id},
+            }
+            for credential in request.profile.webauthn_credentials.all()
+        ]
         return JsonResponse(data, encoder=WebAuthnJSONEncoder)
 
     def post(self, request, *args, **kwargs):
@@ -185,7 +196,8 @@ class WebAuthnAttestationView(WebAuthnView):
             return HttpResponseBadRequest(str(e))
 
         model = WebAuthnCredential(
-            user=request.profile, name=request.POST['name'],
+            user=request.profile,
+            name=request.POST['name'],
             cred_id=credential.credential_id.decode('ascii'),
             public_key=credential.public_key.decode('ascii'),
             counter=credential.sign_count,
@@ -203,8 +215,10 @@ class WebAuthnAttestView(WebAuthnView):
         challenge = os.urandom(32)
         request.session['webauthn_assert'] = webauthn_encode(challenge)
         data = webauthn.WebAuthnAssertionOptions(
-            [credential.webauthn_user for credential in
-             request.profile.webauthn_credentials.select_related('user__user')],
+            [
+                credential.webauthn_user
+                for credential in request.profile.webauthn_credentials.select_related('user__user')
+            ],
             challenge,
         ).assertion_dict
         return JsonResponse(data, encoder=WebAuthnJSONEncoder)
@@ -218,8 +232,12 @@ class WebAuthnDeleteView(SingleObjectMixin, WebAuthnView):
         credential = self.get_object()
         count = self.get_queryset().count()
 
-        if settings.DMOJ_REQUIRE_STAFF_2FA and self.request.user.is_staff and \
-                count <= 1 and not request.profile.is_totp_enabled:
+        if (
+            settings.DMOJ_REQUIRE_STAFF_2FA
+            and self.request.user.is_staff
+            and count <= 1
+            and not request.profile.is_totp_enabled
+        ):
             return HttpResponseBadRequest(_('Staff may not disable 2FA'))
         credential.delete()
 
@@ -239,8 +257,9 @@ class TwoFactorLoginView(RedirectURLMixin, TOTPView, ContextMixin):
         return result
 
     def check_skip(self):
-        return ((not self.profile.is_totp_enabled and not self.profile.is_webauthn_enabled) or
-                self.request.session.get('2fa_passed', False))
+        return (not self.profile.is_totp_enabled and not self.profile.is_webauthn_enabled) or self.request.session.get(
+            '2fa_passed', False
+        )
 
     def next_page(self):
         redirect_to = self.request.GET.get('next', '')

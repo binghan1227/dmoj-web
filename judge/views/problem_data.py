@@ -1,28 +1,42 @@
+from itertools import chain
 import json
 import mimetypes
 import os
-from itertools import chain
 from typing import List
-from zipfile import BadZipfile, ZipFile
+from zipfile import BadZipfile
+from zipfile import ZipFile
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ValidationError
-from django.forms import BaseModelFormSet, HiddenInput, ModelForm, NumberInput, Select, formset_factory
-from django.http import Http404, HttpResponse, HttpResponseRedirect
-from django.shortcuts import get_object_or_404, render
+from django.forms import BaseModelFormSet
+from django.forms import formset_factory
+from django.forms import HiddenInput
+from django.forms import ModelForm
+from django.forms import NumberInput
+from django.forms import Select
+from django.http import Http404
+from django.http import HttpResponse
+from django.http import HttpResponseRedirect
+from django.shortcuts import get_object_or_404
+from django.shortcuts import render
 from django.urls import reverse
-from django.utils.html import escape, format_html
+from django.utils.html import escape
+from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
 from django.views.generic import DetailView
-
 from judge.highlight_code import highlight_code
-from judge.models import Problem, ProblemData, ProblemTestCase, Submission, problem_data_storage
+from judge.models import Problem
+from judge.models import problem_data_storage
+from judge.models import ProblemData
+from judge.models import ProblemTestCase
+from judge.models import Submission
 from judge.utils.problem_data import ProblemDataCompiler
 from judge.utils.unicode import utf8text
-from judge.utils.views import TitleMixin, add_file_response
+from judge.utils.views import add_file_response
+from judge.utils.views import TitleMixin
 from judge.views.problem import ProblemMixin
 
 mimetypes.init()
@@ -63,8 +77,16 @@ class ProblemDataForm(ModelForm):
 
     class Meta:
         model = ProblemData
-        fields = ['zipfile', 'generator', 'unicode', 'nobigmath', 'output_limit', 'output_prefix',
-                  'checker', 'checker_args']
+        fields = [
+            'zipfile',
+            'generator',
+            'unicode',
+            'nobigmath',
+            'output_limit',
+            'output_prefix',
+            'checker',
+            'checker_args',
+        ]
         widgets = {
             'checker_args': HiddenInput,
         }
@@ -75,8 +97,20 @@ class ProblemCaseForm(ModelForm):
 
     class Meta:
         model = ProblemTestCase
-        fields = ('order', 'type', 'input_file', 'output_file', 'points', 'is_pretest', 'output_limit',
-                  'output_prefix', 'checker', 'checker_args', 'generator_args', 'batch_dependencies')
+        fields = (
+            'order',
+            'type',
+            'input_file',
+            'output_file',
+            'points',
+            'is_pretest',
+            'output_limit',
+            'output_prefix',
+            'checker',
+            'checker_args',
+            'generator_args',
+            'batch_dependencies',
+        )
         widgets = {
             'generator_args': HiddenInput,
             'batch_dependencies': HiddenInput,
@@ -88,8 +122,9 @@ class ProblemCaseForm(ModelForm):
         }
 
 
-class ProblemCaseFormSet(formset_factory(ProblemCaseForm, formset=BaseModelFormSet, extra=1, max_num=1,
-                                         can_delete=True)):
+class ProblemCaseFormSet(
+    formset_factory(ProblemCaseForm, formset=BaseModelFormSet, extra=1, max_num=1, can_delete=True)
+):
     model = ProblemTestCase
 
     def __init__(self, *args, **kwargs):
@@ -119,9 +154,13 @@ class ProblemSubmissionDiff(TitleMixin, ProblemMixin, DetailView):
         return _('Comparing submissions for {0}').format(self.object.name)
 
     def get_content_title(self):
-        return mark_safe(escape(_('Comparing submissions for {0}')).format(
-            format_html('<a href="{1}">{0}</a>', self.object.name, reverse('problem_detail', args=[self.object.code])),
-        ))
+        return mark_safe(
+            escape(_('Comparing submissions for {0}')).format(
+                format_html(
+                    '<a href="{1}">{0}</a>', self.object.name, reverse('problem_detail', args=[self.object.code])
+                ),
+            )
+        )
 
     def get_object(self, queryset=None):
         problem = super(ProblemSubmissionDiff, self).get_object(queryset)
@@ -158,18 +197,30 @@ class ProblemDataView(TitleMixin, ProblemManagerMixin):
         return _('Editing data for {0}').format(self.object.name)
 
     def get_content_title(self):
-        return mark_safe(escape(_('Editing data for %s')) % (
-            format_html('<a href="{1}">{0}</a>', self.object.name,
-                        reverse('problem_detail', args=[self.object.code]))))
+        return mark_safe(
+            escape(_('Editing data for %s'))
+            % (
+                format_html(
+                    '<a href="{1}">{0}</a>', self.object.name, reverse('problem_detail', args=[self.object.code])
+                )
+            )
+        )
 
     def get_data_form(self, post=False):
-        return ProblemDataForm(data=self.request.POST if post else None, prefix='problem-data',
-                               files=self.request.FILES if post else None,
-                               instance=ProblemData.objects.get_or_create(problem=self.object)[0])
+        return ProblemDataForm(
+            data=self.request.POST if post else None,
+            prefix='problem-data',
+            files=self.request.FILES if post else None,
+            instance=ProblemData.objects.get_or_create(problem=self.object)[0],
+        )
 
     def get_case_formset(self, files, post=False):
-        return ProblemCaseFormSet(data=self.request.POST if post else None, prefix='cases', valid_files=files,
-                                  queryset=ProblemTestCase.objects.filter(dataset_id=self.object.pk).order_by('order'))
+        return ProblemCaseFormSet(
+            data=self.request.POST if post else None,
+            prefix='cases',
+            valid_files=files,
+            queryset=ProblemTestCase.objects.filter(dataset_id=self.object.pk).order_by('order'),
+        )
 
     def get_valid_files(self, data, post=False) -> List[str]:
         try:
@@ -219,8 +270,9 @@ class ProblemDataView(TitleMixin, ProblemManagerMixin):
                 case.delete()
             ProblemDataCompiler.generate(problem, data, problem.cases.order_by('order'), valid_files)
             return HttpResponseRedirect(request.get_full_path())
-        return self.render_to_response(self.get_context_data(data_form=data_form, cases_formset=cases_formset,
-                                                             valid_files=valid_files))
+        return self.render_to_response(
+            self.get_context_data(data_form=data_form, cases_formset=cases_formset, valid_files=valid_files)
+        )
 
     put = post
 
@@ -263,13 +315,19 @@ def problem_init_view(request, problem):
     except IOError:
         raise Http404()
 
-    return render(request, 'problem/yaml.html', {
-        'raw_source': data, 'highlighted_source': highlight_code(data, 'yaml'),
-        'title': _('Generated init.yml for %s') % problem.name,
-        'content_title': mark_safe(escape(_('Generated init.yml for %s')) % (
-            format_html('<a href="{1}">{0}</a>', problem.name,
-                        reverse('problem_detail', args=[problem.code])))),
-    })
+    return render(
+        request,
+        'problem/yaml.html',
+        {
+            'raw_source': data,
+            'highlighted_source': highlight_code(data, 'yaml'),
+            'title': _('Generated init.yml for %s') % problem.name,
+            'content_title': mark_safe(
+                escape(_('Generated init.yml for %s'))
+                % (format_html('<a href="{1}">{0}</a>', problem.name, reverse('problem_detail', args=[problem.code])))
+            ),
+        },
+    )
 
 
 @login_required

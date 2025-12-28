@@ -2,7 +2,8 @@ import collections.abc
 import inspect
 from math import ceil
 
-from django.core.paginator import EmptyPage, InvalidPage
+from django.core.paginator import EmptyPage
+from django.core.paginator import InvalidPage
 from django.http import Http404
 from django.utils.functional import cached_property
 from django.utils.inspect import method_has_no_args
@@ -31,7 +32,7 @@ class InfinitePage(collections.abc.Sequence):
     def _after_up_to_pad(self):
         first_after = self.number * self.page_size
         padding_length = self.pad_pages * self.page_size
-        queryset = self.unfiltered_queryset[first_after:first_after + padding_length + 1]
+        queryset = self.unfiltered_queryset[first_after : first_after + padding_length + 1]
         c = getattr(queryset, 'count', None)
         if callable(c) and not inspect.isbuiltin(c) and method_has_no_args(c):
             return c()
@@ -103,7 +104,7 @@ class DummyPaginator:
 def infinite_paginate(queryset, page, page_size, pad_pages, paginator=None):
     if page < 1:
         raise EmptyPage()
-    sliced = queryset[(page - 1) * page_size:page * page_size]
+    sliced = queryset[(page - 1) * page_size : page * page_size]
     if page > 1 and not sliced:
         raise EmptyPage()
     return InfinitePage(sliced, page, queryset, page_size, pad_pages, paginator)
@@ -133,7 +134,10 @@ class InfinitePaginationMixin:
             page = infinite_paginate(queryset, page_number, page_size, self.pad_pages, paginator)
             return paginator, page, page.object_list, page.has_other_pages()
         except InvalidPage as e:
-            raise Http404('Invalid page (%(page_number)s): %(message)s' % {
-                'page_number': page_number,
-                'message': str(e),
-            })
+            raise Http404(
+                'Invalid page (%(page_number)s): %(message)s'
+                % {
+                    'page_number': page_number,
+                    'message': str(e),
+                }
+            )

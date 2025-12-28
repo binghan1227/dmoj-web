@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-import lxml.html as lh
 from django.db import migrations
+import lxml.html as lh
 from lxml.html.clean import clean_html
 
 
@@ -13,7 +13,6 @@ def strip_error_html(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('judge', '0090_fix_contest_visibility'),
     ]

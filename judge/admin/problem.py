@@ -5,17 +5,28 @@ from django.contrib import admin
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.forms import ModelForm
-from django.urls import reverse, reverse_lazy
+from django.urls import reverse
+from django.urls import reverse_lazy
 from django.utils import timezone
 from django.utils.html import format_html
-from django.utils.translation import gettext, gettext_lazy as _, ngettext
-from reversion.admin import VersionAdmin
-
-from judge.models import LanguageLimit, Problem, ProblemClarification, ProblemPointsVote, ProblemTemplate, \
-    ProblemTranslation, Profile, Solution
+from django.utils.translation import gettext
+from django.utils.translation import gettext_lazy as _
+from django.utils.translation import ngettext
+from judge.models import LanguageLimit
+from judge.models import Problem
+from judge.models import ProblemClarification
+from judge.models import ProblemPointsVote
+from judge.models import ProblemTemplate
+from judge.models import ProblemTranslation
+from judge.models import Profile
+from judge.models import Solution
 from judge.utils.views import NoBatchDeleteMixin
-from judge.widgets import AdminHeavySelect2MultipleWidget, AdminMartorWidget, AdminSelect2MultipleWidget, \
-    AdminSelect2Widget, CheckboxSelectMultipleWithSelectAll
+from judge.widgets import AdminHeavySelect2MultipleWidget
+from judge.widgets import AdminMartorWidget
+from judge.widgets import AdminSelect2MultipleWidget
+from judge.widgets import AdminSelect2Widget
+from judge.widgets import CheckboxSelectMultipleWithSelectAll
+from reversion.admin import VersionAdmin
 
 
 class ProblemForm(ModelForm):
@@ -27,9 +38,11 @@ class ProblemForm(ModelForm):
         self.fields['curators'].widget.can_add_related = False
         self.fields['testers'].widget.can_add_related = False
         self.fields['banned_users'].widget.can_add_related = False
-        self.fields['change_message'].widget.attrs.update({
-            'placeholder': gettext('Describe the changes you made (optional)'),
-        })
+        self.fields['change_message'].widget.attrs.update(
+            {
+                'placeholder': gettext('Describe the changes you made (optional)'),
+            }
+        )
 
     class Meta:
         widgets = {
@@ -126,14 +139,28 @@ class ProblemTemplateInline(admin.StackedInline):
 
 class ProblemAdmin(NoBatchDeleteMixin, VersionAdmin):
     fieldsets = (
-        (None, {
-            'fields': (
-                'code', 'name', 'is_public', 'is_manually_managed', 'date', 'authors', 'curators', 'testers',
-                'organizations', 'submission_source_visibility_mode', 'is_full_markup',
-                'view_test_cases', 'view_tester',
-                'description', 'license',
-            ),
-        }),
+        (
+            None,
+            {
+                'fields': (
+                    'code',
+                    'name',
+                    'is_public',
+                    'is_manually_managed',
+                    'date',
+                    'authors',
+                    'curators',
+                    'testers',
+                    'organizations',
+                    'submission_source_visibility_mode',
+                    'is_full_markup',
+                    'view_test_cases',
+                    'view_tester',
+                    'description',
+                    'license',
+                ),
+            },
+        ),
         (_('Social Media'), {'classes': ('collapse',), 'fields': ('og_image', 'summary')}),
         (_('Taxonomy'), {'fields': ('types', 'group')}),
         (_('Points'), {'fields': (('points', 'partial'), 'short_circuit')}),
@@ -145,8 +172,13 @@ class ProblemAdmin(NoBatchDeleteMixin, VersionAdmin):
     list_display = ['code', 'name', 'show_authors', 'points', 'is_public', 'show_public']
     ordering = ['code']
     search_fields = ('code', 'name', 'authors__user__username', 'curators__user__username')
-    inlines = [LanguageLimitInline, ProblemClarificationInline, ProblemSolutionInline,
-               ProblemTranslationInline, ProblemTemplateInline]
+    inlines = [
+        LanguageLimitInline,
+        ProblemClarificationInline,
+        ProblemSolutionInline,
+        ProblemTranslationInline,
+        ProblemTemplateInline,
+    ]
     list_max_show_all = 1000
     actions_on_top = True
     actions_on_bottom = True
@@ -157,8 +189,9 @@ class ProblemAdmin(NoBatchDeleteMixin, VersionAdmin):
     def get_actions(self, request):
         actions = super(ProblemAdmin, self).get_actions(request)
 
-        if request.user.has_perm('judge.change_public_visibility') or \
-                request.user.has_perm('judge.create_private_problem'):
+        if request.user.has_perm('judge.change_public_visibility') or request.user.has_perm(
+            'judge.create_private_problem'
+        ):
             func, name, desc = self.get_action('make_public')
             actions[name] = (func, name, desc)
 
@@ -194,14 +227,21 @@ class ProblemAdmin(NoBatchDeleteMixin, VersionAdmin):
 
     def _rescore(self, request, problem_id):
         from judge.tasks import rescore_problem
+
         transaction.on_commit(rescore_problem.s(problem_id).delay)
 
     @admin.display(description=_('Set publish date to now'))
     def update_publish_date(self, request, queryset):
         count = queryset.update(date=timezone.now())
-        self.message_user(request, ngettext("%d problem's publish date successfully updated.",
-                                            "%d problems' publish date successfully updated.",
-                                            count) % count)
+        self.message_user(
+            request,
+            ngettext(
+                "%d problem's publish date successfully updated.",
+                "%d problems' publish date successfully updated.",
+                count,
+            )
+            % count,
+        )
 
     @admin.display(description=_('Mark problems as public'))
     def make_public(self, request, queryset):
@@ -210,9 +250,11 @@ class ProblemAdmin(NoBatchDeleteMixin, VersionAdmin):
         count = queryset.update(is_public=True)
         for problem_id in queryset.values_list('id', flat=True):
             self._rescore(request, problem_id)
-        self.message_user(request, ngettext('%d problem successfully marked as public.',
-                                            '%d problems successfully marked as public.',
-                                            count) % count)
+        self.message_user(
+            request,
+            ngettext('%d problem successfully marked as public.', '%d problems successfully marked as public.', count)
+            % count,
+        )
 
     @admin.display(description=_('Mark problems as private'))
     def make_private(self, request, queryset):
@@ -221,9 +263,11 @@ class ProblemAdmin(NoBatchDeleteMixin, VersionAdmin):
         count = queryset.update(is_public=False)
         for problem_id in queryset.values_list('id', flat=True):
             self._rescore(request, problem_id)
-        self.message_user(request, ngettext('%d problem successfully marked as private.',
-                                            '%d problems successfully marked as private.',
-                                            count) % count)
+        self.message_user(
+            request,
+            ngettext('%d problem successfully marked as private.', '%d problems successfully marked as private.', count)
+            % count,
+        )
 
     def get_queryset(self, request):
         return Problem.get_editable_problems(request.user).prefetch_related('authors__user').distinct()
@@ -255,9 +299,8 @@ class ProblemAdmin(NoBatchDeleteMixin, VersionAdmin):
                 raise PermissionDenied
 
         super(ProblemAdmin, self).save_model(request, obj, form, change)
-        if (
-            form.changed_data and
-            any(f in form.changed_data for f in ('is_public', 'organizations', 'points', 'partial'))
+        if form.changed_data and any(
+            f in form.changed_data for f in ('is_public', 'organizations', 'points', 'partial')
         ):
             self._rescore(request, obj.id)
 

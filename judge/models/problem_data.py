@@ -3,7 +3,6 @@ import os
 
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-
 from judge.utils.problem_data import ProblemDataStorage
 
 __all__ = ['problem_data_storage', 'problem_directory_file', 'ProblemData', 'ProblemTestCase', 'CHECKERS']
@@ -36,20 +35,32 @@ CHECKERS = (
 
 
 class ProblemData(models.Model):
-    problem = models.OneToOneField('Problem', verbose_name=_('problem'), related_name='data_files',
-                                   on_delete=models.CASCADE)
-    zipfile = models.FileField(verbose_name=_('data zip file'), storage=problem_data_storage, null=True, blank=True,
-                               upload_to=problem_directory_file)
-    generator = models.FileField(verbose_name=_('generator file'), storage=problem_data_storage, null=True, blank=True,
-                                 upload_to=problem_directory_file)
+    problem = models.OneToOneField(
+        'Problem', verbose_name=_('problem'), related_name='data_files', on_delete=models.CASCADE
+    )
+    zipfile = models.FileField(
+        verbose_name=_('data zip file'),
+        storage=problem_data_storage,
+        null=True,
+        blank=True,
+        upload_to=problem_directory_file,
+    )
+    generator = models.FileField(
+        verbose_name=_('generator file'),
+        storage=problem_data_storage,
+        null=True,
+        blank=True,
+        upload_to=problem_directory_file,
+    )
     output_prefix = models.IntegerField(verbose_name=_('output prefix length'), blank=True, null=True)
     output_limit = models.IntegerField(verbose_name=_('output limit length'), blank=True, null=True)
     feedback = models.TextField(verbose_name=_('init.yml generation feedback'), blank=True)
     checker = models.CharField(max_length=10, verbose_name=_('checker'), choices=CHECKERS, blank=True)
     unicode = models.BooleanField(verbose_name=_('enable unicode'), null=True, blank=True)
     nobigmath = models.BooleanField(verbose_name=_('disable bigInteger / bigDecimal'), null=True, blank=True)
-    checker_args = models.TextField(verbose_name=_('checker arguments'), blank=True,
-                                    help_text=_('Checker arguments as a JSON object.'))
+    checker_args = models.TextField(
+        verbose_name=_('checker arguments'), blank=True, help_text=_('Checker arguments as a JSON object.')
+    )
 
     __original_zipfile = None
 
@@ -76,18 +87,21 @@ class ProblemData(models.Model):
         if self.generator:
             self.generator.name = _problem_directory_file(new, self.generator.name)
         self.save()
+
     _update_code.alters_data = True
 
 
 class ProblemTestCase(models.Model):
-    dataset = models.ForeignKey('Problem', verbose_name=_('problem data set'), related_name='cases',
-                                on_delete=models.CASCADE)
+    dataset = models.ForeignKey(
+        'Problem', verbose_name=_('problem data set'), related_name='cases', on_delete=models.CASCADE
+    )
     order = models.IntegerField(verbose_name=_('case position'))
-    type = models.CharField(max_length=1, verbose_name=_('case type'),
-                            choices=(('C', _('Normal case')),
-                                     ('S', _('Batch start')),
-                                     ('E', _('Batch end'))),
-                            default='C')
+    type = models.CharField(
+        max_length=1,
+        verbose_name=_('case type'),
+        choices=(('C', _('Normal case')), ('S', _('Batch start')), ('E', _('Batch end'))),
+        default='C',
+    )
     input_file = models.CharField(max_length=100, verbose_name=_('input file name'), blank=True)
     output_file = models.CharField(max_length=100, verbose_name=_('output file name'), blank=True)
     generator_args = models.TextField(verbose_name=_('generator arguments'), blank=True)
@@ -96,7 +110,11 @@ class ProblemTestCase(models.Model):
     output_prefix = models.IntegerField(verbose_name=_('output prefix length'), blank=True, null=True)
     output_limit = models.IntegerField(verbose_name=_('output limit length'), blank=True, null=True)
     checker = models.CharField(max_length=10, verbose_name=_('checker'), choices=CHECKERS, blank=True)
-    checker_args = models.TextField(verbose_name=_('checker arguments'), blank=True,
-                                    help_text=_('checker arguments as a JSON object'))
-    batch_dependencies = models.TextField(verbose_name=_('batch dependencies'), blank=True,
-                                          help_text=_('batch dependencies as a comma-separated list of integers'))
+    checker_args = models.TextField(
+        verbose_name=_('checker arguments'), blank=True, help_text=_('checker arguments as a JSON object')
+    )
+    batch_dependencies = models.TextField(
+        verbose_name=_('batch dependencies'),
+        blank=True,
+        help_text=_('batch dependencies as a comma-separated list of integers'),
+    )

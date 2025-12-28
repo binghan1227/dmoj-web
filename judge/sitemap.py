@@ -2,8 +2,11 @@ from django.contrib.auth.models import User
 from django.contrib.sitemaps import Sitemap
 from django.urls import reverse
 from django.utils import timezone
-
-from judge.models import BlogPost, Contest, Organization, Problem, Solution
+from judge.models import BlogPost
+from judge.models import Contest
+from judge.models import Organization
+from judge.models import Problem
+from judge.models import Solution
 
 
 class ProblemSitemap(Sitemap):
@@ -33,8 +36,9 @@ class ContestSitemap(Sitemap):
     priority = 0.7
 
     def items(self):
-        return Contest.objects.filter(is_visible=True, is_private=False,
-                                      is_organization_private=False).values_list('key')
+        return Contest.objects.filter(is_visible=True, is_private=False, is_organization_private=False).values_list(
+            'key'
+        )
 
     def location(self, obj):
         return reverse('contest_view', args=obj)
@@ -67,8 +71,9 @@ class SolutionSitemap(Sitemap):
     priority = 0.8
 
     def items(self):
-        return (Solution.objects.filter(is_public=True, publish_on__lte=timezone.now(),
-                                        problem__in=Problem.get_public_problems()).values_list('problem__code'))
+        return Solution.objects.filter(
+            is_public=True, publish_on__lte=timezone.now(), problem__in=Problem.get_public_problems()
+        ).values_list('problem__code')
 
     def location(self, obj):
         return reverse('problem_editorial', args=obj)
@@ -104,9 +109,11 @@ class UrlSitemap(Sitemap):
 
 sitemaps = {
     'home': HomePageSitemap,
-    'pages': UrlSitemap([
-        {'location': '/about/', 'priority': 0.9},
-    ]),
+    'pages': UrlSitemap(
+        [
+            {'location': '/about/', 'priority': 0.9},
+        ]
+    ),
     'problem': ProblemSitemap,
     'solutions': SolutionSitemap,
     'blog': BlogPostSitemap,

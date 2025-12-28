@@ -3,12 +3,10 @@ from django.contrib.admin import widgets
 from django.core.exceptions import ImproperlyConfigured
 from django.template.loader import get_template
 
-from .settings import (
-    MARTOR_ENABLE_CONFIGS,
-    MARTOR_MARKDOWNIFY_URL,
-    MARTOR_SEARCH_USERS_URL,
-    MARTOR_UPLOAD_URL,
-)
+from .settings import MARTOR_ENABLE_CONFIGS
+from .settings import MARTOR_MARKDOWNIFY_URL
+from .settings import MARTOR_SEARCH_USERS_URL
+from .settings import MARTOR_UPLOAD_URL
 
 
 class MartorWidget(forms.Textarea):
@@ -51,14 +49,16 @@ class MartorWidget(forms.Textarea):
         template = get_template('martor/editor.html')
         mentions_enabled = MARTOR_ENABLE_CONFIGS.get('mention') == 'true'
 
-        return template.render({
-            'martor': widget,
-            'field_name': name,
-            'mentions_enabled': mentions_enabled,
-            'uploads_enabled': self.UPLOADS_ENABLED,
-            'editor_msg': self.editor_msg,
-            'button_text': self.button_text,
-        })
+        return template.render(
+            {
+                'martor': widget,
+                'field_name': name,
+                'mentions_enabled': mentions_enabled,
+                'uploads_enabled': self.UPLOADS_ENABLED,
+                'editor_msg': self.editor_msg,
+                'button_text': self.button_text,
+            }
+        )
 
     class Media:
         css = {

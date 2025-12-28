@@ -1,5 +1,6 @@
 from django.conf import settings
-from django.utils.safestring import SafeData, mark_safe
+from django.utils.safestring import mark_safe
+from django.utils.safestring import SafeData
 
 if settings.USE_I18N:
     from django.utils.translation.trans_real import DjangoTranslation, get_language
@@ -34,5 +35,6 @@ if settings.USE_I18N:
     def gettext(message):
         return do_translate(message, 'gettext')
 else:
+
     def gettext(message):
         return message

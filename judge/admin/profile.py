@@ -3,12 +3,16 @@ from django.contrib.auth.admin import UserAdmin as OldUserAdmin
 from django.forms import ModelForm
 from django.urls import reverse_lazy
 from django.utils.html import format_html
-from django.utils.translation import gettext, gettext_lazy as _, ngettext
-from reversion.admin import VersionAdmin
-
-from judge.models import Profile, WebAuthnCredential
+from django.utils.translation import gettext
+from django.utils.translation import gettext_lazy as _
+from django.utils.translation import ngettext
+from judge.models import Profile
+from judge.models import WebAuthnCredential
 from judge.utils.views import NoBatchDeleteMixin
-from judge.widgets import AdminAceWidget, AdminMartorWidget, AdminSelect2Widget
+from judge.widgets import AdminAceWidget
+from judge.widgets import AdminMartorWidget
+from judge.widgets import AdminSelect2Widget
+from reversion.admin import VersionAdmin
 
 
 class ProfileForm(ModelForm):
@@ -16,10 +20,12 @@ class ProfileForm(ModelForm):
         super(ProfileForm, self).__init__(*args, **kwargs)
         if 'current_contest' in self.base_fields:
             # form.fields['current_contest'] does not exist when the user has only view permission on the model.
-            self.fields['current_contest'].queryset = self.instance.contest_history.select_related('contest') \
-                .only('contest__name', 'user_id', 'virtual')
-            self.fields['current_contest'].label_from_instance = \
+            self.fields['current_contest'].queryset = self.instance.contest_history.select_related('contest').only(
+                'contest__name', 'user_id', 'virtual'
+            )
+            self.fields['current_contest'].label_from_instance = (
                 lambda obj: '%s v%d' % (obj.contest.name, obj.virtual) if obj.virtual else obj.contest.name
+            )
 
     class Meta:
         widgets = {
@@ -54,12 +60,37 @@ class WebAuthnInline(admin.TabularInline):
 
 
 class ProfileAdmin(NoBatchDeleteMixin, VersionAdmin):
-    fields = ('user', 'display_rank', 'about', 'organizations', 'timezone', 'language', 'ace_theme',
-              'math_engine', 'last_access', 'ip', 'mute', 'is_unlisted', 'is_banned_from_problem_voting',
-              'username_display_override', 'notes', 'is_totp_enabled', 'user_script', 'current_contest')
+    fields = (
+        'user',
+        'display_rank',
+        'about',
+        'organizations',
+        'timezone',
+        'language',
+        'ace_theme',
+        'math_engine',
+        'last_access',
+        'ip',
+        'mute',
+        'is_unlisted',
+        'is_banned_from_problem_voting',
+        'username_display_override',
+        'notes',
+        'is_totp_enabled',
+        'user_script',
+        'current_contest',
+    )
     readonly_fields = ('user',)
-    list_display = ('admin_user_admin', 'email', 'is_totp_enabled', 'timezone_full',
-                    'date_joined', 'last_access', 'ip', 'show_public')
+    list_display = (
+        'admin_user_admin',
+        'email',
+        'is_totp_enabled',
+        'timezone_full',
+        'date_joined',
+        'last_access',
+        'ip',
+        'show_public',
+    )
     ordering = ('user__username',)
     search_fields = ('user__username', 'ip', 'user__email')
     list_filter = ('language', TimezoneFilter)
@@ -100,8 +131,9 @@ class ProfileAdmin(NoBatchDeleteMixin, VersionAdmin):
 
     @admin.display(description='')
     def show_public(self, obj):
-        return format_html('<a href="{0}" style="white-space:nowrap;">{1}</a>',
-                           obj.get_absolute_url(), gettext('View on site'))
+        return format_html(
+            '<a href="{0}" style="white-space:nowrap;">{1}</a>', obj.get_absolute_url(), gettext('View on site')
+        )
 
     @admin.display(description=_('user'), ordering='user__username')
     def admin_user_admin(self, obj):
@@ -125,16 +157,17 @@ class ProfileAdmin(NoBatchDeleteMixin, VersionAdmin):
         for profile in queryset:
             profile.calculate_points()
             count += 1
-        self.message_user(request, ngettext('%d user had scores recalculated.',
-                                            '%d users had scores recalculated.',
-                                            count) % count)
+        self.message_user(
+            request, ngettext('%d user had scores recalculated.', '%d users had scores recalculated.', count) % count
+        )
 
     def get_form(self, request, obj=None, **kwargs):
         form = super(ProfileAdmin, self).get_form(request, obj, **kwargs)
         if 'user_script' in form.base_fields:
             # form.base_fields['user_script'] does not exist when the user has only view permission on the model.
             form.base_fields['user_script'].widget = AdminAceWidget(
-                mode='javascript', theme=request.profile.resolved_ace_theme,
+                mode='javascript',
+                theme=request.profile.resolved_ace_theme,
             )
         return form
 

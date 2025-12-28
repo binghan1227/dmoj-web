@@ -1,8 +1,7 @@
 import json
-from operator import attrgetter, itemgetter
+from operator import attrgetter
+from operator import itemgetter
 
-import pyotp
-import webauthn
 from django import forms
 from django.conf import settings
 from django.contrib.auth.forms import AuthenticationForm
@@ -10,16 +9,32 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.db.models import Q
-from django.forms import BooleanField, CharField, ChoiceField, Form, ModelForm, MultipleChoiceField
+from django.forms import BooleanField
+from django.forms import CharField
+from django.forms import ChoiceField
+from django.forms import Form
+from django.forms import ModelForm
+from django.forms import MultipleChoiceField
 from django.urls import reverse_lazy
 from django.utils.text import format_lazy
-from django.utils.translation import gettext_lazy as _, ngettext_lazy
-
-from judge.models import Contest, Language, Organization, Problem, ProblemPointsVote, Profile, Submission, \
-    WebAuthnCredential
+from django.utils.translation import gettext_lazy as _
+from django.utils.translation import ngettext_lazy
+from judge.models import Contest
+from judge.models import Language
+from judge.models import Organization
+from judge.models import Problem
+from judge.models import ProblemPointsVote
+from judge.models import Profile
+from judge.models import Submission
+from judge.models import WebAuthnCredential
 from judge.utils.mail import validate_email_domain
 from judge.utils.subscription import newsletter_id
-from judge.widgets import AceWidget, MartorWidget, Select2MultipleWidget, Select2Widget
+from judge.widgets import AceWidget
+from judge.widgets import MartorWidget
+from judge.widgets import Select2MultipleWidget
+from judge.widgets import Select2Widget
+import pyotp
+import webauthn
 
 TOTP_CODE_LENGTH = 6
 
@@ -27,9 +42,14 @@ two_factor_validators_by_length = {
     TOTP_CODE_LENGTH: {
         'regex_validator': RegexValidator(
             f'^[0-9]{{{TOTP_CODE_LENGTH}}}$',
-            format_lazy(ngettext_lazy('Two-factor authentication tokens must be {count} decimal digit.',
-                                      'Two-factor authentication tokens must be {count} decimal digits.',
-                                      TOTP_CODE_LENGTH), count=TOTP_CODE_LENGTH),
+            format_lazy(
+                ngettext_lazy(
+                    'Two-factor authentication tokens must be {count} decimal digit.',
+                    'Two-factor authentication tokens must be {count} decimal digits.',
+                    TOTP_CODE_LENGTH,
+                ),
+                count=TOTP_CODE_LENGTH,
+            ),
         ),
         'verify': lambda code, profile: not profile.check_totp_code(code),
         'err': _('Invalid two-factor authentication token.'),
@@ -74,9 +94,13 @@ class ProfileForm(ModelForm):
         max_orgs = settings.DMOJ_USER_MAX_ORGANIZATION_COUNT
 
         if sum(org.is_open for org in organizations) > max_orgs:
-            raise ValidationError(ngettext_lazy('You may not be part of more than {count} public organization.',
-                                                'You may not be part of more than {count} public organizations.',
-                                                max_orgs).format(count=max_orgs))
+            raise ValidationError(
+                ngettext_lazy(
+                    'You may not be part of more than {count} public organization.',
+                    'You may not be part of more than {count} public organizations.',
+                    max_orgs,
+                ).format(count=max_orgs)
+            )
 
         return self.cleaned_data
 
@@ -182,8 +206,9 @@ class CustomAuthenticationForm(AuthenticationForm):
         self.has_github_auth = self._has_social_auth('GITHUB_SECURE')
 
     def _has_social_auth(self, key):
-        return (getattr(settings, 'SOCIAL_AUTH_%s_KEY' % key, None) and
-                getattr(settings, 'SOCIAL_AUTH_%s_SECRET' % key, None))
+        return getattr(settings, 'SOCIAL_AUTH_%s_KEY' % key, None) and getattr(
+            settings, 'SOCIAL_AUTH_%s_SECRET' % key, None
+        )
 
 
 class NoAutoCompleteCharField(forms.CharField):

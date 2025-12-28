@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('judge', '0129_see_scoreboard_subs'),
     ]
@@ -12,6 +11,13 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AlterModelOptions(
             name='blogpost',
-            options={'permissions': (('edit_all_post', 'Edit all posts'), ('change_post_visibility', 'Edit post visibility')), 'verbose_name': 'blog post', 'verbose_name_plural': 'blog posts'},
+            options={
+                'permissions': (
+                    ('edit_all_post', 'Edit all posts'),
+                    ('change_post_visibility', 'Edit post visibility'),
+                ),
+                'verbose_name': 'blog post',
+                'verbose_name_plural': 'blog posts',
+            },
         ),
     ]

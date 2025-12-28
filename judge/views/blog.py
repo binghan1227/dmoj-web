@@ -1,14 +1,21 @@
 from django.conf import settings
-from django.db.models import Count, Max
+from django.db.models import Count
+from django.db.models import Max
 from django.http import Http404
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views.generic import ListView
-
 from judge.comments import CommentedDetailView
-from judge.models import BlogPost, Comment, Contest, Language, Problem, ProblemClarification, Profile, Submission, \
-    Ticket
+from judge.models import BlogPost
+from judge.models import Comment
+from judge.models import Contest
+from judge.models import Language
+from judge.models import Problem
+from judge.models import ProblemClarification
+from judge.models import Profile
+from judge.models import Submission
+from judge.models import Ticket
 from judge.utils.cachedict import CacheDict
 from judge.utils.diggpaginator import DiggPaginator
 from judge.utils.opengraph import generate_opengraph
@@ -23,14 +30,23 @@ class PostList(ListView):
     template_name = 'blog/list.html'
     title = None
 
-    def get_paginator(self, queryset, per_page, orphans=0,
-                      allow_empty_first_page=True, **kwargs):
-        return DiggPaginator(queryset, per_page, body=6, padding=2,
-                             orphans=orphans, allow_empty_first_page=allow_empty_first_page, **kwargs)
+    def get_paginator(self, queryset, per_page, orphans=0, allow_empty_first_page=True, **kwargs):
+        return DiggPaginator(
+            queryset,
+            per_page,
+            body=6,
+            padding=2,
+            orphans=orphans,
+            allow_empty_first_page=allow_empty_first_page,
+            **kwargs,
+        )
 
     def get_queryset(self):
-        return (BlogPost.objects.filter(visible=True, publish_on__lte=timezone.now()).order_by('-sticky', '-publish_on')
-                .prefetch_related('authors__user'))
+        return (
+            BlogPost.objects.filter(visible=True, publish_on__lte=timezone.now())
+            .order_by('-sticky', '-publish_on')
+            .prefetch_related('authors__user')
+        )
 
     def get_context_data(self, **kwargs):
         context = super(PostList, self).get_context_data(**kwargs)
@@ -38,8 +54,9 @@ class PostList(ListView):
         context['first_page_href'] = reverse('home')
         context['page_prefix'] = reverse('blog_post_list')
         context['comments'] = Comment.most_recent(self.request.user, 10)
-        context['new_problems'] = Problem.get_public_problems() \
-                                         .order_by('-date', 'code')[:settings.DMOJ_BLOG_NEW_PROBLEM_COUNT]
+        context['new_problems'] = Problem.get_public_problems().order_by('-date', 'code')[
+            : settings.DMOJ_BLOG_NEW_PROBLEM_COUNT
+        ]
         context['page_titles'] = CacheDict(lambda page: Comment.get_page_title(page))
 
         context['has_clarifications'] = False
@@ -56,32 +73,42 @@ class PostList(ListView):
         context['language_count'] = Language.objects.count
 
         context['post_comment_counts'] = {
-            int(page[2:]): count for page, count in
-            Comment.objects
-                   .filter(page__in=['b:%d' % post.id for post in context['posts']], hidden=False)
-                   .values_list('page').annotate(count=Count('page')).order_by()
+            int(page[2:]): count
+            for page, count in Comment.objects.filter(
+                page__in=['b:%d' % post.id for post in context['posts']], hidden=False
+            )
+            .values_list('page')
+            .annotate(count=Count('page'))
+            .order_by()
         }
 
         now = timezone.now()
 
-        visible_contests = Contest.get_visible_contests(self.request.user).filter(is_visible=True) \
-                                  .order_by('start_time')
+        visible_contests = (
+            Contest.get_visible_contests(self.request.user).filter(is_visible=True).order_by('start_time')
+        )
 
         context['current_contests'] = visible_contests.filter(start_time__lte=now, end_time__gt=now)
         context['future_contests'] = visible_contests.filter(start_time__gt=now)
 
         if self.request.user.is_authenticated:
             context['own_open_tickets'] = (
-                Ticket.objects.filter(user=self.request.profile, is_open=True).order_by('-id')
-                              .prefetch_related('linked_item').select_related('user__user')
+                Ticket.objects.filter(user=self.request.profile, is_open=True)
+                .order_by('-id')
+                .prefetch_related('linked_item')
+                .select_related('user__user')
             )
         else:
             context['own_open_tickets'] = []
 
         # Superusers better be staffs, not the spell-casting kind either.
         if self.request.user.is_staff:
-            tickets = (Ticket.objects.order_by('-id').filter(is_open=True).prefetch_related('linked_item')
-                             .select_related('user__user'))
+            tickets = (
+                Ticket.objects.order_by('-id')
+                .filter(is_open=True)
+                .prefetch_related('linked_item')
+                .select_related('user__user')
+            )
             context['open_tickets'] = filter_visible_tickets(tickets, self.request.user)[:10]
         else:
             context['open_tickets'] = []
@@ -103,8 +130,9 @@ class PostView(TitleMixin, CommentedDetailView):
     def get_context_data(self, **kwargs):
         context = super(PostView, self).get_context_data(**kwargs)
 
-        metadata = generate_opengraph('generated-meta-blog:%d' % self.object.id,
-                                      self.object.summary or self.object.content, 'blog')
+        metadata = generate_opengraph(
+            'generated-meta-blog:%d' % self.object.id, self.object.summary or self.object.content, 'blog'
+        )
         context['meta_description'] = metadata[0]
         context['og_image'] = self.object.og_image or metadata[1]
         context['enable_comments'] = settings.DMOJ_ENABLE_COMMENTS

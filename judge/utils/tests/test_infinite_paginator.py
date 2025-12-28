@@ -1,5 +1,4 @@
 from django.test import SimpleTestCase
-
 from judge.utils.infinite_paginator import infinite_paginate
 
 

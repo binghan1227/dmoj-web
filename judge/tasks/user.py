@@ -7,8 +7,9 @@ import zipfile
 from celery import shared_task
 from django.conf import settings
 from django.utils.translation import gettext as _
-
-from judge.models import Comment, Problem, Submission
+from judge.models import Comment
+from judge.models import Problem
+from judge.models import Submission
 from judge.utils.celery import Progress
 from judge.utils.raw_sql import use_straight_join
 from judge.utils.unicode import utf8bytes

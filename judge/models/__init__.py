@@ -1,19 +1,15 @@
+from judge.models.comment import Comment
+from judge.models.contest import Contest
+from judge.models.contest import ContestProblem
+from judge.models.interface import BlogPost
+from judge.models.problem import LanguageLimit
+from judge.models.problem import Problem
+from judge.models.problem import Solution
+from judge.models.profile import Organization
+from judge.models.profile import Profile
+from judge.models.runtime import Judge
+from judge.models.runtime import Language
 from reversion import revisions
-
-from judge.models.choices import ACE_THEMES, EFFECTIVE_MATH_ENGINES, MATH_ENGINES_CHOICES, TIMEZONE
-from judge.models.comment import Comment, CommentLock, CommentVote
-from judge.models.contest import Contest, ContestMoss, ContestParticipation, ContestProblem, ContestSubmission, \
-    ContestTag, Rating
-from judge.models.interface import BlogPost, MiscConfig, NavigationBar, validate_regex
-from judge.models.problem import LanguageLimit, License, Problem, ProblemClarification, ProblemGroup, \
-    ProblemPointsVote, ProblemTemplate, ProblemTranslation, ProblemType, Solution, SubmissionSourceAccess, \
-    TranslatedProblemQuerySet
-from judge.models.problem_data import CHECKERS, ProblemData, ProblemTestCase, problem_data_storage, \
-    problem_directory_file
-from judge.models.profile import Class, Organization, OrganizationRequest, Profile, WebAuthnCredential
-from judge.models.runtime import Judge, Language, RuntimeVersion
-from judge.models.submission import SUBMISSION_RESULT, Submission, SubmissionSource, SubmissionTestCase
-from judge.models.ticket import Ticket, TicketMessage
 
 revisions.register(Profile, exclude=['points', 'last_access', 'ip', 'rating'])
 revisions.register(Problem, follow=['language_limits'])

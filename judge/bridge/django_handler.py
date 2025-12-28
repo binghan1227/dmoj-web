@@ -3,8 +3,8 @@ import logging
 import struct
 
 from django import db
-
-from judge.bridge.base_handler import Disconnect, ZlibPacketHandler
+from judge.bridge.base_handler import Disconnect
+from judge.bridge.base_handler import ZlibPacketHandler
 
 logger = logging.getLogger('judge.bridge')
 size_pack = struct.Struct('!I')

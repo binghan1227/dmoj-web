@@ -1,14 +1,13 @@
+from base64 import b64decode
 import hashlib
 import json
 import logging
-from base64 import b64decode
 
-import requests
 from django.conf import settings
 from django.core.cache import caches
-
 from judge.utils.file_cache import HashFileCache
 from judge.utils.unicode import utf8bytes
+import requests
 
 logger = logging.getLogger('judge.texoid')
 
@@ -17,9 +16,7 @@ TEXOID_ENABLED = hasattr(settings, 'TEXOID_URL')
 
 class TexoidRenderer(object):
     def __init__(self):
-        self.cache = HashFileCache(settings.TEXOID_CACHE_ROOT,
-                                   settings.TEXOID_CACHE_URL,
-                                   settings.TEXOID_GZIP)
+        self.cache = HashFileCache(settings.TEXOID_CACHE_ROOT, settings.TEXOID_CACHE_URL, settings.TEXOID_GZIP)
         self.meta_cache = caches[settings.TEXOID_META_CACHE]
         self.meta_cache_ttl = settings.TEXOID_META_CACHE_TTL
 
@@ -27,9 +24,13 @@ class TexoidRenderer(object):
         self.cache.create(hash)
 
         try:
-            response = requests.post(settings.TEXOID_URL, data=utf8bytes(document), headers={
-                'Content-Type': 'application/x-tex',
-            })
+            response = requests.post(
+                settings.TEXOID_URL,
+                data=utf8bytes(document),
+                headers={
+                    'Content-Type': 'application/x-tex',
+                },
+            )
             response.raise_for_status()
         except requests.HTTPError as e:
             if e.response.status_code == 400:

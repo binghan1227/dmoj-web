@@ -3,52 +3,89 @@ import binascii
 import datetime
 import itertools
 import json
+from operator import attrgetter
+from operator import itemgetter
 import os
-from operator import attrgetter, itemgetter
 
 from django.conf import settings
 from django.contrib.auth import logout as auth_logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.auth.models import Permission, User
-from django.contrib.auth.views import LoginView, PasswordChangeView, PasswordResetView, redirect_to_login
+from django.contrib.auth.models import Permission
+from django.contrib.auth.models import User
+from django.contrib.auth.views import LoginView
+from django.contrib.auth.views import PasswordChangeView
+from django.contrib.auth.views import PasswordResetView
+from django.contrib.auth.views import redirect_to_login
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.sites.shortcuts import get_current_site
 from django.core import signing
 from django.core.cache import cache
-from django.core.exceptions import PermissionDenied, ValidationError
-from django.db.models import Count, Max, Min
-from django.db.models.functions import ExtractYear, TruncDate
-from django.http import Http404, HttpResponse, HttpResponseRedirect, JsonResponse
-from django.shortcuts import get_object_or_404, render
+from django.core.exceptions import PermissionDenied
+from django.core.exceptions import ValidationError
+from django.db.models import Count
+from django.db.models import Max
+from django.db.models import Min
+from django.db.models.functions import ExtractYear
+from django.db.models.functions import TruncDate
+from django.http import Http404
+from django.http import HttpResponse
+from django.http import HttpResponseRedirect
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+from django.shortcuts import render
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.formats import date_format
 from django.utils.functional import cached_property
 from django.utils.safestring import mark_safe
-from django.utils.translation import gettext as _, gettext_lazy
+from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy
 from django.views.decorators.http import require_POST
-from django.views.generic import DetailView, FormView, ListView, TemplateView, View
-from reversion import revisions
-
-from judge.forms import CustomAuthenticationForm, DownloadDataForm, EmailChangeForm, ProfileForm, newsletter_id
-from judge.models import Profile, Submission
+from django.views.generic import DetailView
+from django.views.generic import FormView
+from django.views.generic import ListView
+from django.views.generic import TemplateView
+from django.views.generic import View
+from judge.forms import CustomAuthenticationForm
+from judge.forms import DownloadDataForm
+from judge.forms import EmailChangeForm
+from judge.forms import newsletter_id
+from judge.forms import ProfileForm
+from judge.models import Profile
+from judge.models import Submission
 from judge.performance_points import get_pp_breakdown
-from judge.ratings import rating_class, rating_progress
+from judge.ratings import rating_class
+from judge.ratings import rating_progress
 from judge.tasks import prepare_user_data
-from judge.utils.celery import task_status_by_id, task_status_url_by_id
+from judge.utils.celery import task_status_by_id
+from judge.utils.celery import task_status_url_by_id
 from judge.utils.infinite_paginator import InfinitePaginationMixin
 from judge.utils.mail import send_mail
-from judge.utils.problems import contest_completed_ids, user_completed_ids
+from judge.utils.problems import contest_completed_ids
+from judge.utils.problems import user_completed_ids
 from judge.utils.pwned import PwnedPasswordsValidator
 from judge.utils.ranker import ranker
 from judge.utils.subscription import Subscription
 from judge.utils.unicode import utf8text
-from judge.utils.views import DiggPaginatorMixin, QueryStringSortMixin, TitleMixin, add_file_response, generic_message
+from judge.utils.views import add_file_response
+from judge.utils.views import DiggPaginatorMixin
+from judge.utils.views import generic_message
+from judge.utils.views import QueryStringSortMixin
+from judge.utils.views import TitleMixin
+from reversion import revisions
+
 from .contests import ContestRanking
 
-__all__ = ['UserPage', 'UserAboutPage', 'UserProblemsPage', 'UserDownloadData', 'UserPrepareData',
-           'users', 'edit_profile']
+__all__ = [
+    'UserPage',
+    'UserAboutPage',
+    'UserProblemsPage',
+    'UserDownloadData',
+    'UserPrepareData',
+    'users',
+    'edit_profile',
+]
 
 
 def remap_keys(iterable, mapping):
@@ -80,12 +117,15 @@ class UserPage(TitleMixin, UserMixin, DetailView):
         try:
             return super(UserPage, self).dispatch(request, *args, **kwargs)
         except Http404:
-            return generic_message(request, _('No such user'), _('No user handle "%s".') %
-                                   self.kwargs.get(self.slug_url_kwarg, None), status=404)
+            return generic_message(
+                request,
+                _('No such user'),
+                _('No user handle "%s".') % self.kwargs.get(self.slug_url_kwarg, None),
+                status=404,
+            )
 
     def get_title(self):
-        return (_('My account') if self.request.user == self.object.user else
-                _('User %s') % self.object.display_name)
+        return _('My account') if self.request.user == self.object.user else _('User %s') % self.object.display_name
 
     # TODO: the same code exists in problem.py, maybe move to problems.py?
     @cached_property
@@ -108,21 +148,35 @@ class UserPage(TitleMixin, UserMixin, DetailView):
         context = super(UserPage, self).get_context_data(**kwargs)
 
         context['hide_solved'] = int(self.hide_solved)
-        context['authored'] = self.object.authored_problems.filter(is_public=True, is_organization_private=False) \
-                                  .select_related('group').order_by('code')
+        context['authored'] = (
+            self.object.authored_problems.filter(is_public=True, is_organization_private=False)
+            .select_related('group')
+            .order_by('code')
+        )
         rating = self.object.ratings.order_by('-contest__end_time')[:1]
         context['rating'] = rating[0] if rating else None
 
-        context['rank'] = Profile.objects.filter(
-            is_unlisted=False, performance_points__gt=self.object.performance_points,
-        ).exclude(id=self.object.id).count() + 1
+        context['rank'] = (
+            Profile.objects.filter(
+                is_unlisted=False,
+                performance_points__gt=self.object.performance_points,
+            )
+            .exclude(id=self.object.id)
+            .count()
+            + 1
+        )
 
         if rating:
-            context['rating_rank'] = Profile.objects.filter(
-                is_unlisted=False, rating__gt=self.object.rating,
-            ).count() + 1
-        context.update(self.object.ratings.aggregate(min_rating=Min('rating'), max_rating=Max('rating'),
-                                                     contests=Count('contest')))
+            context['rating_rank'] = (
+                Profile.objects.filter(
+                    is_unlisted=False,
+                    rating__gt=self.object.rating,
+                ).count()
+                + 1
+            )
+        context.update(
+            self.object.ratings.aggregate(min_rating=Min('rating'), max_rating=Max('rating'), contests=Count('contest'))
+        )
         return context
 
     def get(self, request, *args, **kwargs):
@@ -164,36 +218,49 @@ class UserAboutPage(UserPage):
 
     def get_context_data(self, **kwargs):
         context = super(UserAboutPage, self).get_context_data(**kwargs)
-        ratings = context['ratings'] = self.object.ratings.order_by('-contest__end_time').select_related('contest') \
-            .defer('contest__description')
-
-        context['rating_data'] = mark_safe(json.dumps([{
-            'label': rating.contest.name,
-            'rating': rating.rating,
-            'ranking': rating.rank,
-            'link': '%s#!%s' % (reverse('contest_ranking', args=(rating.contest.key,)), self.object.user.username),
-            'timestamp': (rating.contest.end_time - EPOCH).total_seconds() * 1000,
-            'date': date_format(timezone.localtime(rating.contest.end_time), _('M j, Y, G:i')),
-            'class': rating_class(rating.rating),
-            'height': '%.3fem' % rating_progress(rating.rating),
-        } for rating in ratings]))
-
-        submissions = (
-            self.object.submission_set
-            .annotate(date_only=TruncDate('date'))
-            .values('date_only').annotate(cnt=Count('id'))
+        ratings = context['ratings'] = (
+            self.object.ratings.order_by('-contest__end_time').select_related('contest').defer('contest__description')
         )
 
-        context['submission_data'] = mark_safe(json.dumps({
-            date_counts['date_only'].isoformat(): date_counts['cnt'] for date_counts in submissions
-        }))
-        context['submission_metadata'] = mark_safe(json.dumps({
-            'min_year': (
-                self.object.submission_set
-                .annotate(year_only=ExtractYear('date'))
-                .aggregate(min_year=Min('year_only'))['min_year']
-            ),
-        }))
+        context['rating_data'] = mark_safe(
+            json.dumps(
+                [
+                    {
+                        'label': rating.contest.name,
+                        'rating': rating.rating,
+                        'ranking': rating.rank,
+                        'link': '%s#!%s'
+                        % (reverse('contest_ranking', args=(rating.contest.key,)), self.object.user.username),
+                        'timestamp': (rating.contest.end_time - EPOCH).total_seconds() * 1000,
+                        'date': date_format(timezone.localtime(rating.contest.end_time), _('M j, Y, G:i')),
+                        'class': rating_class(rating.rating),
+                        'height': '%.3fem' % rating_progress(rating.rating),
+                    }
+                    for rating in ratings
+                ]
+            )
+        )
+
+        submissions = (
+            self.object.submission_set.annotate(date_only=TruncDate('date'))
+            .values('date_only')
+            .annotate(cnt=Count('id'))
+        )
+
+        context['submission_data'] = mark_safe(
+            json.dumps({date_counts['date_only'].isoformat(): date_counts['cnt'] for date_counts in submissions})
+        )
+        context['submission_metadata'] = mark_safe(
+            json.dumps(
+                {
+                    'min_year': (
+                        self.object.submission_set.annotate(year_only=ExtractYear('date')).aggregate(
+                            min_year=Min('year_only')
+                        )['min_year']
+                    ),
+                }
+            )
+        )
         return context
 
 
@@ -203,11 +270,16 @@ class UserProblemsPage(UserPage):
     def get_context_data(self, **kwargs):
         context = super(UserProblemsPage, self).get_context_data(**kwargs)
 
-        result = Submission.objects.filter(user=self.object, points__gt=0, problem__is_public=True,
-                                           problem__is_organization_private=False) \
-            .exclude(problem__in=self.get_completed_problems() if self.hide_solved else []) \
-            .values('problem__id', 'problem__code', 'problem__name', 'problem__points', 'problem__group__full_name') \
-            .distinct().annotate(points=Max('points')).order_by('problem__group__full_name', 'problem__code')
+        result = (
+            Submission.objects.filter(
+                user=self.object, points__gt=0, problem__is_public=True, problem__is_organization_private=False
+            )
+            .exclude(problem__in=self.get_completed_problems() if self.hide_solved else [])
+            .values('problem__id', 'problem__code', 'problem__name', 'problem__points', 'problem__group__full_name')
+            .distinct()
+            .annotate(points=Max('points'))
+            .order_by('problem__group__full_name', 'problem__code')
+        )
 
         def process_group(group, problems_iter):
             problems = list(problems_iter)
@@ -215,11 +287,19 @@ class UserProblemsPage(UserPage):
             return {'name': group, 'problems': problems, 'points': points}
 
         context['best_submissions'] = [
-            process_group(group, problems) for group, problems in itertools.groupby(
-                remap_keys(result, {
-                    'problem__code': 'code', 'problem__name': 'name', 'problem__points': 'total',
-                    'problem__group__full_name': 'group',
-                }), itemgetter('group'))
+            process_group(group, problems)
+            for group, problems in itertools.groupby(
+                remap_keys(
+                    result,
+                    {
+                        'problem__code': 'code',
+                        'problem__name': 'name',
+                        'problem__points': 'total',
+                        'problem__group__full_name': 'group',
+                    },
+                ),
+                itemgetter('group'),
+            )
         ]
         breakdown, has_more = get_pp_breakdown(self.object, start=0, end=10)
         context['pp_breakdown'] = breakdown
@@ -248,10 +328,12 @@ class UserPerformancePointsAjax(UserProblemsPage):
         httpresp = super(UserPerformancePointsAjax, self).get(request, *args, **kwargs)
         httpresp.render()
 
-        return JsonResponse({
-            'results': utf8text(httpresp.content),
-            'has_more': self.has_more,
-        })
+        return JsonResponse(
+            {
+                'results': utf8text(httpresp.content),
+                'has_more': self.has_more,
+            }
+        )
 
 
 class UserDataMixin:
@@ -276,9 +358,9 @@ class UserPrepareData(LoginRequiredMixin, UserDataMixin, TitleMixin, FormView):
     @cached_property
     def can_prepare_data(self):
         return (
-            self.request.profile.data_last_downloaded is None or
-            self.request.profile.data_last_downloaded + settings.DMOJ_USER_DATA_DOWNLOAD_RATELIMIT < self._now or
-            not os.path.exists(self.data_path)
+            self.request.profile.data_last_downloaded is None
+            or self.request.profile.data_last_downloaded + settings.DMOJ_USER_DATA_DOWNLOAD_RATELIMIT < self._now
+            or not os.path.exists(self.data_path)
         )
 
     @cached_property
@@ -289,15 +371,13 @@ class UserPrepareData(LoginRequiredMixin, UserDataMixin, TitleMixin, FormView):
     def in_progress_url(self):
         status_id = cache.get(self.data_cache_key)
         status = task_status_by_id(status_id).status if status_id else None
-        return (
-            self.build_task_url(status_id)
-            if status in ('PENDING', 'PROGRESS', 'STARTED')
-            else None
-        )
+        return self.build_task_url(status_id) if status in ('PENDING', 'PROGRESS', 'STARTED') else None
 
     def build_task_url(self, status_id):
         return task_status_url_by_id(
-            status_id, message=_('Preparing your data...'), redirect=reverse('user_prepare_data'),
+            status_id,
+            message=_('Preparing your data...'),
+            redirect=reverse('user_prepare_data'),
         )
 
     def get_title(self):
@@ -318,8 +398,8 @@ class UserPrepareData(LoginRequiredMixin, UserDataMixin, TitleMixin, FormView):
         context['ratelimit'] = settings.DMOJ_USER_DATA_DOWNLOAD_RATELIMIT
 
         if not self.can_prepare_data:
-            context['time_until_can_prepare'] = (
-                settings.DMOJ_USER_DATA_DOWNLOAD_RATELIMIT - (self._now - self.request.profile.data_last_downloaded)
+            context['time_until_can_prepare'] = settings.DMOJ_USER_DATA_DOWNLOAD_RATELIMIT - (
+                self._now - self.request.profile.data_last_downloaded
             )
         return context
 
@@ -387,14 +467,20 @@ def edit_profile(request):
                 form.fields['newsletter'].initial = subscription.subscribed
         form.fields['test_site'].initial = request.user.has_perm('judge.test_site')
 
-    return render(request, 'user/edit-profile.html', {
-        'require_staff_2fa': settings.DMOJ_REQUIRE_STAFF_2FA,
-        'form': form, 'title': _('Edit profile'), 'profile': request.profile,
-        'can_download_data': bool(settings.DMOJ_USER_DATA_DOWNLOAD),
-        'has_math_config': bool(settings.MATHOID_URL),
-        'ignore_user_script': True,
-        'TIMEZONE_MAP': settings.TIMEZONE_MAP,
-    })
+    return render(
+        request,
+        'user/edit-profile.html',
+        {
+            'require_staff_2fa': settings.DMOJ_REQUIRE_STAFF_2FA,
+            'form': form,
+            'title': _('Edit profile'),
+            'profile': request.profile,
+            'can_download_data': bool(settings.DMOJ_USER_DATA_DOWNLOAD),
+            'has_math_config': bool(settings.MATHOID_URL),
+            'ignore_user_script': True,
+            'TIMEZONE_MAP': settings.TIMEZONE_MAP,
+        },
+    )
 
 
 @require_POST
@@ -440,9 +526,20 @@ class UserList(QueryStringSortMixin, InfinitePaginationMixin, DiggPaginatorMixin
     default_sort = '-performance_points'
 
     def get_queryset(self):
-        return (Profile.objects.filter(is_unlisted=False).order_by(self.order, 'id').select_related('user')
-                .only('display_rank', 'user__username', 'username_display_override', 'points', 'rating',
-                      'performance_points', 'problem_count'))
+        return (
+            Profile.objects.filter(is_unlisted=False)
+            .order_by(self.order, 'id')
+            .select_related('user')
+            .only(
+                'display_rank',
+                'user__username',
+                'username_display_override',
+                'points',
+                'rating',
+                'performance_points',
+                'problem_count',
+            )
+        )
 
     def get_context_data(self, **kwargs):
         context = super(UserList, self).get_context_data(**kwargs)
@@ -484,7 +581,9 @@ def user_ranking_redirect(request):
     user = get_object_or_404(Profile, user__username=username)
     rank = Profile.objects.filter(is_unlisted=False, performance_points__gt=user.performance_points).count()
     rank += Profile.objects.filter(
-        is_unlisted=False, performance_points__exact=user.performance_points, id__lt=user.id,
+        is_unlisted=False,
+        performance_points__exact=user.performance_points,
+        id__lt=user.id,
     ).count()
     page = rank // UserList.paginate_by
     return HttpResponseRedirect('%s%s#!%s' % (reverse('user_list'), '?page=%d' % (page + 1) if page else '', username))
@@ -512,8 +611,11 @@ class CustomPasswordResetView(PasswordResetView):
         key = f'pwreset!{request.META["REMOTE_ADDR"]}'
         cache.add(key, 0, timeout=settings.DMOJ_PASSWORD_RESET_LIMIT_WINDOW * MINUTES_TO_SECONDS)
         if cache.incr(key) > settings.DMOJ_PASSWORD_RESET_LIMIT_COUNT:
-            return HttpResponse(_('You have sent too many password reset requests. Please try again later.'),
-                                content_type='text/plain', status=429)
+            return HttpResponse(
+                _('You have sent too many password reset requests. Please try again later.'),
+                content_type='text/plain',
+                status=429,
+            )
         return super().post(request, *args, **kwargs)
 
 
@@ -532,10 +634,14 @@ class EmailChangeRequestView(LoginRequiredMixin, TitleMixin, FormView):
     def form_valid(self, form):
         signer = signing.TimestampSigner()
         new_email = form.cleaned_data['email']
-        activation_key = base64.urlsafe_b64encode(signer.sign_object({
-            'id': self.request.user.id,
-            'email': new_email,
-        }).encode()).decode()
+        activation_key = base64.urlsafe_b64encode(
+            signer.sign_object(
+                {
+                    'id': self.request.user.id,
+                    'email': new_email,
+                }
+            ).encode()
+        ).decode()
 
         current_site = get_current_site(self.request)
         context = {
@@ -578,8 +684,11 @@ class EmailChangeRequestView(LoginRequiredMixin, TitleMixin, FormView):
         key = f'emailchange!{request.META["REMOTE_ADDR"]}'
         cache.add(key, 0, timeout=settings.DMOJ_EMAIL_CHANGE_LIMIT_WINDOW * MINUTES_TO_SECONDS)
         if cache.incr(key) > settings.DMOJ_EMAIL_CHANGE_LIMIT_COUNT:
-            return HttpResponse(_('You have sent too many email change requests. Please try again later.'),
-                                content_type='text/plain', status=429)
+            return HttpResponse(
+                _('You have sent too many email change requests. Please try again later.'),
+                content_type='text/plain',
+                status=429,
+            )
         return super().post(request, *args, **kwargs)
 
 
@@ -607,8 +716,10 @@ class EmailChangeActivateView(LoginRequiredMixin, View):
         with revisions.create_revision(atomic=True):
             if User.objects.filter(email=to_email).exists():
                 raise self.EmailChangeFailedError(
-                    _('The email you originally requested has since been registered by another user. '
-                      'Please try again with a new email.'),
+                    _(
+                        'The email you originally requested has since been registered by another user. '
+                        'Please try again with a new email.'
+                    ),
                 )
             request.user.email = to_email
             request.user.save()

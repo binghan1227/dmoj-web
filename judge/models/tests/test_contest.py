@@ -1,57 +1,64 @@
 from django.core.exceptions import ValidationError
-from django.test import SimpleTestCase, TestCase
+from django.test import SimpleTestCase
+from django.test import TestCase
 from django.utils import timezone
-
-from judge.models import Contest, ContestParticipation, ContestTag
+from judge.models import Contest
+from judge.models import ContestParticipation
+from judge.models import ContestTag
 from judge.models.contest import MinValueOrNoneValidator
-from judge.models.tests.util import CommonDataMixin, create_contest, create_contest_participation, create_user
+from judge.models.tests.util import CommonDataMixin
+from judge.models.tests.util import create_contest
+from judge.models.tests.util import create_contest_participation
+from judge.models.tests.util import create_user
 
 
 class ContestTestCase(CommonDataMixin, TestCase):
     @classmethod
     def setUpTestData(self):
         super().setUpTestData()
-        self.users.update({
-            'staff_contest_edit_own': create_user(
-                username='staff_contest_edit_own',
-                is_staff=True,
-                user_permissions=('edit_own_contest',),
-            ),
-            'staff_contest_see_all': create_user(
-                username='staff_contest_see_all',
-                user_permissions=('see_private_contest',),
-            ),
-            'staff_contest_edit_all': create_user(
-                username='staff_contest_edit_all',
-                is_staff=True,
-                user_permissions=('edit_own_contest', 'edit_all_contest'),
-            ),
-            'normal_during_window': create_user(
-                username='normal_during_window',
-            ),
-            'normal_after_window': create_user(
-                username='normal_after_window',
-            ),
-            'normal_before_window': create_user(
-                username='normal_before_window',
-            ),
-            'non_staff_author': create_user(
-                username='non_staff_author',
-                is_staff=False,
-            ),
-            'non_staff_tester': create_user(
-                username='non_staff_tester',
-                is_staff=False,
-            ),
-            'normal_open_org': create_user(
-                username='normal_open_org',
-                is_staff=False,
-            ),
-            'non_staff_spectator': create_user(
-                username='non_staff_spectator',
-                is_staff=False,
-            ),
-        })
+        self.users.update(
+            {
+                'staff_contest_edit_own': create_user(
+                    username='staff_contest_edit_own',
+                    is_staff=True,
+                    user_permissions=('edit_own_contest',),
+                ),
+                'staff_contest_see_all': create_user(
+                    username='staff_contest_see_all',
+                    user_permissions=('see_private_contest',),
+                ),
+                'staff_contest_edit_all': create_user(
+                    username='staff_contest_edit_all',
+                    is_staff=True,
+                    user_permissions=('edit_own_contest', 'edit_all_contest'),
+                ),
+                'normal_during_window': create_user(
+                    username='normal_during_window',
+                ),
+                'normal_after_window': create_user(
+                    username='normal_after_window',
+                ),
+                'normal_before_window': create_user(
+                    username='normal_before_window',
+                ),
+                'non_staff_author': create_user(
+                    username='non_staff_author',
+                    is_staff=False,
+                ),
+                'non_staff_tester': create_user(
+                    username='non_staff_tester',
+                    is_staff=False,
+                ),
+                'normal_open_org': create_user(
+                    username='normal_open_org',
+                    is_staff=False,
+                ),
+                'non_staff_spectator': create_user(
+                    username='non_staff_spectator',
+                    is_staff=False,
+                ),
+            }
+        )
 
         self.users['normal_open_org'].profile.organizations.add(self.organizations['open'])
 

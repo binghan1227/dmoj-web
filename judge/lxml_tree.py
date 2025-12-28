@@ -1,8 +1,10 @@
 import logging
 
-from django.utils.safestring import SafeData, mark_safe
+from django.utils.safestring import mark_safe
+from django.utils.safestring import SafeData
 from lxml import html
-from lxml.etree import ParserError, XMLSyntaxError
+from lxml.etree import ParserError
+from lxml.etree import XMLSyntaxError
 
 logger = logging.getLogger('judge.html')
 

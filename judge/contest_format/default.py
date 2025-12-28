@@ -6,8 +6,8 @@ from django.template.defaultfilters import floatformat
 from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
-from django.utils.translation import gettext as _, gettext_lazy
-
+from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy
 from judge.contest_format.base import BaseContestFormat
 from judge.contest_format.registry import register_contest_format
 from judge.utils.timedelta import nice_repr
@@ -31,7 +31,8 @@ class DefaultContestFormat(BaseContestFormat):
         format_data = {}
 
         for result in participation.submissions.values('problem_id').annotate(
-                time=Max('submission__date'), points=Max('points'),
+            time=Max('submission__date'),
+            points=Max('points'),
         ):
             dt = (result['time'] - participation.start).total_seconds()
             if result['points']:
@@ -50,10 +51,14 @@ class DefaultContestFormat(BaseContestFormat):
         if format_data:
             return format_html(
                 '<td class="{state}"><a href="{url}">{points}<div class="solving-time">{time}</div></a></td>',
-                state=(('pretest-' if self.contest.run_pretests_only and contest_problem.is_pretested else '') +
-                       self.best_solution_state(format_data['points'], contest_problem.points)),
-                url=reverse('contest_user_submissions',
-                            args=[self.contest.key, participation.user.user.username, contest_problem.problem.code]),
+                state=(
+                    ('pretest-' if self.contest.run_pretests_only and contest_problem.is_pretested else '')
+                    + self.best_solution_state(format_data['points'], contest_problem.points)
+                ),
+                url=reverse(
+                    'contest_user_submissions',
+                    args=[self.contest.key, participation.user.user.username, contest_problem.problem.code],
+                ),
                 points=floatformat(format_data['points']),
                 time=nice_repr(timedelta(seconds=format_data['time']), 'noday'),
             )
@@ -63,8 +68,7 @@ class DefaultContestFormat(BaseContestFormat):
     def display_participation_result(self, participation):
         return format_html(
             '<td class="user-points"><a href="{url}">{points}<div class="solving-time">{cumtime}</div></a></td>',
-            url=reverse('contest_all_user_submissions',
-                        args=[self.contest.key, participation.user.user.username]),
+            url=reverse('contest_all_user_submissions', args=[self.contest.key, participation.user.user.username]),
             points=floatformat(participation.score, -self.contest.points_precision),
             cumtime=nice_repr(timedelta(seconds=participation.cumtime), 'noday'),
         )

@@ -2,7 +2,8 @@ from textwrap import dedent
 
 from django import forms
 from django.conf import settings
-from django.template import Context, Template
+from django.template import Context
+from django.template import Template
 from lxml import html
 
 
@@ -35,6 +36,7 @@ class CompressorWidgetMixin(object):
         pass
     else:
         if getattr(settings, 'COMPRESS_ENABLED', not settings.DEBUG):
+
             @property
             def media(self):
                 media = super().media

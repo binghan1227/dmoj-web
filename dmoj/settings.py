@@ -46,7 +46,7 @@ DMOJ_SSL = 0
 # Refer to https://dmoj.ca/post/103-point-system-rework
 DMOJ_PP_STEP = 0.95
 DMOJ_PP_ENTRIES = 100
-DMOJ_PP_BONUS_FUNCTION = lambda n: 300 * (1 - 0.997 ** n)  # noqa: E731
+DMOJ_PP_BONUS_FUNCTION = lambda n: 300 * (1 - 0.997**n)  # noqa: E731
 
 ACE_URL = '//cdnjs.cloudflare.com/ajax/libs/ace/1.1.3'
 SELECT2_JS_URL = '//cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/js/select2.min.js'
@@ -362,7 +362,8 @@ TEMPLATES = [
             'trim_blocks': True,
             'lstrip_blocks': True,
             'translation_engine': 'judge.utils.safe_translations',
-            'extensions': DEFAULT_EXTENSIONS + [
+            'extensions': DEFAULT_EXTENSIONS
+            + [
                 'compressor.contrib.jinja2ext.CompressorExtension',
                 'judge.jinja2.DMOJExtension',
                 'judge.jinja2.spaceless.SpacelessExtension',
@@ -415,15 +416,76 @@ LANGUAGES = [
 ]
 
 BLEACH_USER_SAFE_TAGS = [
-    'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-    'b', 'i', 'strong', 'em', 'tt', 'del', 'kbd', 's', 'abbr', 'cite', 'mark', 'q', 'samp', 'small',
-    'u', 'var', 'wbr', 'dfn', 'ruby', 'rb', 'rp', 'rt', 'rtc', 'sub', 'sup', 'time', 'data',
-    'p', 'br', 'pre', 'span', 'div', 'blockquote', 'code', 'hr',
-    'ul', 'ol', 'li', 'dd', 'dl', 'dt', 'address', 'section', 'details', 'summary',
-    'table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td', 'caption', 'colgroup', 'col', 'tfoot',
-    'img', 'audio', 'video', 'source',
+    'h1',
+    'h2',
+    'h3',
+    'h4',
+    'h5',
+    'h6',
+    'b',
+    'i',
+    'strong',
+    'em',
+    'tt',
+    'del',
+    'kbd',
+    's',
+    'abbr',
+    'cite',
+    'mark',
+    'q',
+    'samp',
+    'small',
+    'u',
+    'var',
+    'wbr',
+    'dfn',
+    'ruby',
+    'rb',
+    'rp',
+    'rt',
+    'rtc',
+    'sub',
+    'sup',
+    'time',
+    'data',
+    'p',
+    'br',
+    'pre',
+    'span',
+    'div',
+    'blockquote',
+    'code',
+    'hr',
+    'ul',
+    'ol',
+    'li',
+    'dd',
+    'dl',
+    'dt',
+    'address',
+    'section',
+    'details',
+    'summary',
+    'table',
+    'thead',
+    'tbody',
+    'tfoot',
+    'tr',
+    'th',
+    'td',
+    'caption',
+    'colgroup',
+    'col',
+    'tfoot',
+    'img',
+    'audio',
+    'video',
+    'source',
     'a',
-    'style', 'noscript', 'center',
+    'style',
+    'noscript',
+    'center',
 ]
 
 BLEACH_USER_SAFE_ATTRS = {

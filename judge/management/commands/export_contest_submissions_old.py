@@ -33,51 +33,49 @@ The command will report how many submissions were archived and
 create the specified ZIP file on disk.
 """
 
-import zipfile
 from pathlib import Path
+import zipfile
 
-from django.core.management.base import BaseCommand, CommandError
-
-from judge.models.contest import (
-    Contest,
-    ContestParticipation,
-    ContestSubmission,
-)
+from django.core.management.base import BaseCommand
+from django.core.management.base import CommandError
+from judge.models.contest import Contest
+from judge.models.contest import ContestParticipation
+from judge.models.contest import ContestSubmission
 
 
 class Command(BaseCommand):
     help = (
-        "Export the source code of all submissions in a contest into a ZIP archive. "
-        "Only live, non‑disqualified participations are exported by default."
+        'Export the source code of all submissions in a contest into a ZIP archive. '
+        'Only live, non‑disqualified participations are exported by default.'
     )
 
     def add_arguments(self, parser):
         parser.add_argument(
-            "contest_key",
+            'contest_key',
             type=str,
-            help="Contest key (the short slug identifying the contest)",
+            help='Contest key (the short slug identifying the contest)',
         )
         parser.add_argument(
-            "archive_path",
+            'archive_path',
             type=str,
-            help="Path of the output ZIP archive to create",
+            help='Path of the output ZIP archive to create',
         )
         parser.add_argument(
-            "--include-disqualified",
-            action="store_true",
-            help="Include submissions from disqualified participations",
+            '--include-disqualified',
+            action='store_true',
+            help='Include submissions from disqualified participations',
         )
         parser.add_argument(
-            "--include-virtual",
-            action="store_true",
-            help="Include submissions from virtual/spectate participations",
+            '--include-virtual',
+            action='store_true',
+            help='Include submissions from virtual/spectate participations',
         )
 
     def handle(self, *args, **opts):
-        contest_key: str = opts["contest_key"]
-        archive_path = Path(opts["archive_path"]).expanduser().resolve()
-        include_disqualified: bool = opts["include_disqualified"]
-        include_virtual: bool = opts["include_virtual"]
+        contest_key: str = opts['contest_key']
+        archive_path = Path(opts['archive_path']).expanduser().resolve()
+        include_disqualified: bool = opts['include_disqualified']
+        include_virtual: bool = opts['include_virtual']
 
         # Look up the contest.
         try:
@@ -96,24 +94,24 @@ class Command(BaseCommand):
 
         # Optimise database access by selecting related objects in one query.
         qs = qs.select_related(
-            "submission",
-            "submission__source",
-            "submission__user__user",
-            "problem__problem",
-            "participation__user__user",
-        ).order_by("participation__user__user__username", "submission__id")
+            'submission',
+            'submission__source',
+            'submission__user__user',
+            'problem__problem',
+            'participation__user__user',
+        ).order_by('participation__user__user__username', 'submission__id')
 
         # Ensure the parent directory exists.
         archive_path.parent.mkdir(parents=True, exist_ok=True)
 
         count = 0
-        with zipfile.ZipFile(archive_path, "w", zipfile.ZIP_DEFLATED) as zf:
+        with zipfile.ZipFile(archive_path, 'w', zipfile.ZIP_DEFLATED) as zf:
             for cs in qs:
                 submission = cs.submission
                 # Resolve associated user and problem.
                 profile = submission.user  # judge.Profile
                 user_obj = profile.user  # django.contrib.auth.models.User
-                username = user_obj.username or "anonymous"
+                username = user_obj.username or 'anonymous'
                 problem_code = cs.problem.problem.code
                 submission_id = submission.id
 
@@ -125,15 +123,15 @@ class Command(BaseCommand):
                     # If the source cannot be accessed, skip and warn.
                     self.stderr.write(
                         self.style.WARNING(
-                            f"Submission {submission_id} by {username} has no source; skipping."
-                        )
+                            f'Submission {submission_id} by {username} has no source; skipping.',
+                        ),
                     )
                     continue
 
                 # Compose the archive member name.  Use .txt extension; if you
                 # prefer language extensions, you may derive it from
                 # submission.language.extension, but that is optional.
-                member_name = f"{username}/{problem_code}-{submission_id}.java"
+                member_name = f'{username}/{problem_code}-{submission_id}.java'
 
                 # Write into the archive.
                 zf.writestr(member_name, source_text)
@@ -141,6 +139,6 @@ class Command(BaseCommand):
 
         self.stdout.write(
             self.style.SUCCESS(
-                f"Exported {count} submissions to archive {archive_path}"
-            )
+                f'Exported {count} submissions to archive {archive_path}',
+            ),
         )

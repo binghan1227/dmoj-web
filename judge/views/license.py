@@ -1,5 +1,4 @@
 from django.views.generic import DetailView
-
 from judge.models import License
 from judge.utils.views import TitleMixin
 

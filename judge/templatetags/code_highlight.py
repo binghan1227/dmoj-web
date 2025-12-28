@@ -1,5 +1,4 @@
 from django import template
-
 from judge.highlight_code import highlight_code
 
 register = template.Library()

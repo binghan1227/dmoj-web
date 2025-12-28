@@ -1,6 +1,8 @@
 from django.utils.translation import gettext_lazy as _
+from judge.ratings import rating_class
+from judge.ratings import rating_name
+from judge.ratings import rating_progress
 
-from judge.ratings import rating_class, rating_name, rating_progress
 from . import registry
 
 

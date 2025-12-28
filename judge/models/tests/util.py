@@ -1,8 +1,19 @@
-from django.contrib.auth.models import AnonymousUser, Permission, User
+from django.contrib.auth.models import AnonymousUser
+from django.contrib.auth.models import Permission
+from django.contrib.auth.models import User
 from django.utils import timezone
-
-from judge.models import BlogPost, Contest, ContestParticipation, ContestProblem, ContestTag, Language, Organization, \
-    Problem, ProblemGroup, ProblemType, Profile, Solution
+from judge.models import BlogPost
+from judge.models import Contest
+from judge.models import ContestParticipation
+from judge.models import ContestProblem
+from judge.models import ContestTag
+from judge.models import Language
+from judge.models import Organization
+from judge.models import Problem
+from judge.models import ProblemGroup
+from judge.models import ProblemType
+from judge.models import Profile
+from judge.models import Solution
 
 
 class CreateModel:

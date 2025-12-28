@@ -3,10 +3,13 @@ from functools import partial
 from django.conf import settings
 from django.contrib.auth.context_processors import PermWrapper
 from django.contrib.sites.shortcuts import get_current_site
-from django.utils.functional import SimpleLazyObject, new_method_proxy
+from django.utils.functional import new_method_proxy
+from django.utils.functional import SimpleLazyObject
+from judge.utils.caniuse import CanIUse
+from judge.utils.caniuse import SUPPORT
 
-from judge.utils.caniuse import CanIUse, SUPPORT
-from .models import NavigationBar, Profile
+from .models import NavigationBar
+from .models import Profile
 
 
 class FixedSimpleLazyObject(SimpleLazyObject):
@@ -46,8 +49,7 @@ def comet_location(request):
     else:
         websocket = settings.EVENT_DAEMON_GET
         poll = settings.EVENT_DAEMON_POLL
-    return {'EVENT_DAEMON_LOCATION': websocket,
-            'EVENT_DAEMON_POLL_LOCATION': poll}
+    return {'EVENT_DAEMON_LOCATION': websocket, 'EVENT_DAEMON_POLL_LOCATION': poll}
 
 
 def __nav_tab(path):
@@ -76,9 +78,11 @@ def misc_config(request):
 
 
 def site_name(request):
-    return {'SITE_NAME': settings.SITE_NAME,
-            'SITE_LONG_NAME': settings.SITE_LONG_NAME,
-            'SITE_ADMIN_EMAIL': settings.SITE_ADMIN_EMAIL}
+    return {
+        'SITE_NAME': settings.SITE_NAME,
+        'SITE_LONG_NAME': settings.SITE_LONG_NAME,
+        'SITE_ADMIN_EMAIL': settings.SITE_ADMIN_EMAIL,
+    }
 
 
 def site_theme(request):

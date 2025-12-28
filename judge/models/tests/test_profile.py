@@ -6,9 +6,10 @@ from django.conf import settings
 from django.test import TestCase
 from django.utils import timezone
 from django.utils.encoding import force_bytes
-
 from judge.models import Profile
-from judge.models.tests.util import CommonDataMixin, create_contest, create_contest_participation
+from judge.models.tests.util import CommonDataMixin
+from judge.models.tests.util import create_contest
+from judge.models.tests.util import create_contest_participation
 
 
 class OrganizationTestCase(CommonDataMixin, TestCase):

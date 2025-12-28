@@ -14,15 +14,19 @@ Details:
 - Files are written as: <username>/<problem_code>-<submission_id>.txt
 """
 
-import zipfile
 from pathlib import Path
-from typing import Set, Tuple
+from typing import Set
+from typing import Tuple
+import zipfile
 
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
+from django.core.management.base import CommandError
 from django.db.models import Prefetch
-
-from judge.models.contest import Contest, ContestParticipation, ContestSubmission
-from judge.models.submission import Submission, SubmissionSource
+from judge.models.contest import Contest
+from judge.models.contest import ContestParticipation
+from judge.models.contest import ContestSubmission
+from judge.models.submission import Submission
+from judge.models.submission import SubmissionSource
 
 
 class Command(BaseCommand):
@@ -75,11 +79,11 @@ class Command(BaseCommand):
 
         # Avoid N+1: pull username, problem code, and source
         qs = qs.select_related(
-            'participation__user__user',   # -> auth.User for names/usernames
-            'submission__user__user',      # redundant but safe
-            'submission__problem',         # problem.code
-            'problem__problem',            # contest problem -> problem
-            'submission__language',        # optional if you want to use lang
+            'participation__user__user',  # -> auth.User for names/usernames
+            'submission__user__user',  # redundant but safe
+            'submission__problem',  # problem.code
+            'problem__problem',  # contest problem -> problem
+            'submission__language',  # optional if you want to use lang
         ).prefetch_related(
             Prefetch('submission__source', queryset=SubmissionSource.objects.all()),
         )
@@ -109,7 +113,7 @@ class Command(BaseCommand):
                 sub: Submission = cs.submission
                 prof_user = sub.user.user
                 username = prof_user.username or f'user{prof_user.id}'
-                problem_code = (sub.problem.code or cs.problem.problem.code or f'prob{cs.problem_id}')
+                problem_code = sub.problem.code or cs.problem.problem.code or f'prob{cs.problem_id}'
 
                 # latest-only: keep newest per (user, problem)
                 if latest_only:
@@ -137,7 +141,7 @@ class Command(BaseCommand):
 
         self.stdout.write(
             self.style.SUCCESS(
-                f"Created '{zip_path}': wrote {written} file(s)" +
-                (f', skipped {skipped_no_source} lacking source.' if skipped_no_source else '.'),
+                f"Created '{zip_path}': wrote {written} file(s)"
+                + (f', skipped {skipped_no_source} lacking source.' if skipped_no_source else '.'),
             ),
         )

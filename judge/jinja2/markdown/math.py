@@ -1,8 +1,7 @@
 import re
 
-import mistune
-
 from judge.utils.mathoid import MathoidMathParser
+import mistune
 
 mistune._pre_tags.append('latex')
 

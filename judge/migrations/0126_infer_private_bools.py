@@ -29,7 +29,6 @@ def sync_private_booleans(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('judge', '0125_organization_classes'),
     ]

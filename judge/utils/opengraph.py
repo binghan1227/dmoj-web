@@ -1,6 +1,5 @@
 from django.core.cache import cache
 from django.template.defaultfilters import truncatewords
-
 from judge.jinja2.markdown import markdown
 from judge.jinja2.reference import reference
 

@@ -1,6 +1,7 @@
 import html
 
-from django.utils.html import escapejs, format_html
+from django.utils.html import escapejs
+from django.utils.html import format_html
 
 from . import registry
 

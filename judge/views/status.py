@@ -3,9 +3,10 @@ from functools import partial
 
 from django.shortcuts import render
 from django.utils.translation import gettext as _
+from judge.models import Judge
+from judge.models import Language
+from judge.models import RuntimeVersion
 from packaging import version
-
-from judge.models import Judge, Language, RuntimeVersion
 
 __all__ = ['status_all', 'status_table']
 
@@ -19,21 +20,29 @@ def get_judges(request):
 
 def status_all(request):
     see_all, judges = get_judges(request)
-    return render(request, 'status/judge-status.html', {
-        'title': _('Status'),
-        'judges': judges,
-        'runtime_version_data': Judge.runtime_versions(),
-        'see_all_judges': see_all,
-    })
+    return render(
+        request,
+        'status/judge-status.html',
+        {
+            'title': _('Status'),
+            'judges': judges,
+            'runtime_version_data': Judge.runtime_versions(),
+            'see_all_judges': see_all,
+        },
+    )
 
 
 def status_table(request):
     see_all, judges = get_judges(request)
-    return render(request, 'status/judge-status-table.html', {
-        'judges': judges,
-        'runtime_version_data': Judge.runtime_versions(),
-        'see_all_judges': see_all,
-    })
+    return render(
+        request,
+        'status/judge-status-table.html',
+        {
+            'judges': judges,
+            'runtime_version_data': Judge.runtime_versions(),
+            'see_all_judges': see_all,
+        },
+    )
 
 
 class LatestList(list):
@@ -104,9 +113,13 @@ def version_matrix(request):
             versions.is_latest = versions.versions == latest[language]
 
     languages = sorted(languages, key=lambda lang: version.parse(lang.name))
-    return render(request, 'status/versions.html', {
-        'title': _('Version'),
-        'judges': sorted(matrix.keys()),
-        'languages': languages,
-        'matrix': matrix,
-    })
+    return render(
+        request,
+        'status/versions.html',
+        {
+            'title': _('Version'),
+            'judges': sorted(matrix.keys()),
+            'languages': languages,
+            'matrix': matrix,
+        },
+    )

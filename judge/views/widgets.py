@@ -1,15 +1,17 @@
 import json
 import os
-import uuid
 from urllib.parse import urljoin
+import uuid
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.files.storage import default_storage
-from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseForbidden, HttpResponseNotFound, \
-    HttpResponseRedirect
+from django.http import HttpResponse
+from django.http import HttpResponseBadRequest
+from django.http import HttpResponseForbidden
+from django.http import HttpResponseNotFound
+from django.http import HttpResponseRedirect
 from django.views.decorators.http import require_POST
-
 from judge.models import Submission
 
 __all__ = ['rejudge_submission']
@@ -42,8 +44,9 @@ def django_uploader(image):
         ext = '.png'
     name = str(uuid.uuid4()) + ext
     default_storage.save(os.path.join(settings.MARTOR_UPLOAD_MEDIA_DIR, name), image)
-    url_base = getattr(settings, 'MARTOR_UPLOAD_URL_PREFIX',
-                       urljoin(settings.MEDIA_URL, settings.MARTOR_UPLOAD_MEDIA_DIR))
+    url_base = getattr(
+        settings, 'MARTOR_UPLOAD_URL_PREFIX', urljoin(settings.MEDIA_URL, settings.MARTOR_UPLOAD_MEDIA_DIR)
+    )
     if not url_base.endswith('/'):
         url_base += '/'
     return json.dumps({'status': 200, 'name': '', 'link': urljoin(url_base, name)})

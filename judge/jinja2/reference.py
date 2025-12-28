@@ -1,5 +1,5 @@
-import re
 from collections import defaultdict
+import re
 from urllib.parse import urljoin
 
 from ansi2html import Ansi2HTMLConverter
@@ -7,11 +7,14 @@ from django.contrib.auth.models import AbstractUser
 from django.urls import reverse
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
+from judge import lxml_tree
+from judge.models import Contest
+from judge.models import Problem
+from judge.models import Profile
+from judge.ratings import rating_class
+from judge.ratings import rating_progress
 from lxml.html import Element
 
-from judge import lxml_tree
-from judge.models import Contest, Problem, Profile
-from judge.ratings import rating_class, rating_progress
 from . import registry
 
 rereference = re.compile(r'\[(r?user):(\w+)\]')
@@ -52,9 +55,12 @@ def get_user_rating(username, data):
 
 
 def get_user_info(usernames):
-    return {name: (rank, rating) for name, rank, rating in
-            Profile.objects.filter(user__username__in=usernames)
-                   .values_list('user__username', 'display_rank', 'rating')}
+    return {
+        name: (rank, rating)
+        for name, rank, rating in Profile.objects.filter(user__username__in=usernames).values_list(
+            'user__username', 'display_rank', 'rating'
+        )
+    }
 
 
 reference_map = {
@@ -71,9 +77,9 @@ def process_reference(text):
     elements = []
     for piece in rereference.finditer(text):
         if prev is None:
-            tail = text[last:piece.start()]
+            tail = text[last : piece.start()]
         else:
-            prev.append(text[last:piece.start()])
+            prev.append(text[last : piece.start()])
         prev = list(piece.groups())
         elements.append(prev)
         last = piece.end()
@@ -150,9 +156,11 @@ def link_user(user):
         user, profile = user.user, user
     else:
         raise ValueError('Expected profile or user, got %s' % (type(user),))
-    return mark_safe(f'<span class="{profile.css_class}">'
-                     f'<a href="{escape(reverse("user_page", args=[user.username]))}">'
-                     f'{escape(profile.display_name)}</a></span>')
+    return mark_safe(
+        f'<span class="{profile.css_class}">'
+        f'<a href="{escape(reverse("user_page", args=[user.username]))}">'
+        f'{escape(profile.display_name)}</a></span>'
+    )
 
 
 @registry.function

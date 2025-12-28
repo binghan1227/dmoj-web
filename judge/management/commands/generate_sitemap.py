@@ -1,11 +1,10 @@
-import sys
 from pathlib import Path
+import sys
 from urllib.parse import urljoin
 
 from django.contrib.sites.models import Site
 from django.core.management import BaseCommand
 from django.template.loader import get_template
-
 from judge.sitemap import sitemaps
 
 
@@ -16,8 +15,9 @@ class Command(BaseCommand):
         parser.add_argument('directory', help='directory to generate the sitemap in')
         parser.add_argument('-s', '--site', type=int, help='ID of the site to generate the sitemap for')
         parser.add_argument('-p', '--protocol', default='https', help='protocol to use for links')
-        parser.add_argument('-d', '--subdir', '--subdirectory', default='sitemaps',
-                            help='subdirectory for individual sitemap files')
+        parser.add_argument(
+            '-d', '--subdir', '--subdirectory', default='sitemaps', help='subdirectory for individual sitemap files'
+        )
         parser.add_argument('-P', '--prefix', help='URL prefix for individual sitemaps')
 
     def handle(self, *args, **options):

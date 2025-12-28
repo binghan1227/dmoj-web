@@ -1,5 +1,6 @@
+from django.db import migrations
+from django.db import models
 import django.db.models.deletion
-from django.db import migrations, models
 
 
 def delete_null_solutions(apps, scheme_editor):
@@ -8,7 +9,6 @@ def delete_null_solutions(apps, scheme_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('judge', '0135_disable_judge'),
     ]
@@ -18,6 +18,12 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='solution',
             name='problem',
-            field=models.OneToOneField(blank=True, on_delete=django.db.models.deletion.CASCADE, related_name='solution', to='judge.Problem', verbose_name='associated problem'),
+            field=models.OneToOneField(
+                blank=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name='solution',
+                to='judge.Problem',
+                verbose_name='associated problem',
+            ),
         ),
     ]

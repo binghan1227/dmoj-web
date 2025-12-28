@@ -35,9 +35,10 @@ To install this command, place this file inside your site project’s
 import csv
 from pathlib import Path
 
-from django.core.management.base import BaseCommand, CommandError
-
-from judge.models.contest import Contest, ContestParticipation
+from django.core.management.base import BaseCommand
+from django.core.management.base import CommandError
+from judge.models.contest import Contest
+from judge.models.contest import ContestParticipation
 
 
 class Command(BaseCommand):

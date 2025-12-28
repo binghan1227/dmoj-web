@@ -1,5 +1,6 @@
+from socketserver import TCPServer
+from socketserver import ThreadingMixIn
 import threading
-from socketserver import TCPServer, ThreadingMixIn
 
 
 class ThreadingTCPListener(ThreadingMixIn, TCPServer):

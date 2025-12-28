@@ -1,8 +1,8 @@
-import pytz
 from django.conf import settings
 from django.db import connection
 from django.utils import timezone
 from django.utils.timezone import make_aware
+import pytz
 
 
 class TimezoneMiddleware(object):

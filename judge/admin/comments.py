@@ -3,11 +3,12 @@ from django.db.models import F
 from django.forms import ModelForm
 from django.urls import reverse_lazy
 from django.utils.html import format_html
-from django.utils.translation import gettext_lazy as _, ngettext
-from reversion.admin import VersionAdmin
-
+from django.utils.translation import gettext_lazy as _
+from django.utils.translation import ngettext
 from judge.models import Comment
-from judge.widgets import AdminHeavySelect2Widget, AdminMartorWidget
+from judge.widgets import AdminHeavySelect2Widget
+from judge.widgets import AdminMartorWidget
+from reversion.admin import VersionAdmin
 
 
 class CommentForm(ModelForm):
@@ -40,16 +41,16 @@ class CommentAdmin(VersionAdmin):
     @admin.display(description=_('Hide comments'))
     def hide_comment(self, request, queryset):
         count = queryset.update(hidden=True)
-        self.message_user(request, ngettext('%d comment successfully hidden.',
-                                            '%d comments successfully hidden.',
-                                            count) % count)
+        self.message_user(
+            request, ngettext('%d comment successfully hidden.', '%d comments successfully hidden.', count) % count
+        )
 
     @admin.display(description=_('Unhide comments'))
     def unhide_comment(self, request, queryset):
         count = queryset.update(hidden=False)
-        self.message_user(request, ngettext('%d comment successfully unhidden.',
-                                            '%d comments successfully unhidden.',
-                                            count) % count)
+        self.message_user(
+            request, ngettext('%d comment successfully unhidden.', '%d comments successfully unhidden.', count) % count
+        )
 
     @admin.display(description=_('associated page'), ordering='page')
     def linked_page(self, obj):

@@ -6,9 +6,11 @@ import zlib
 
 from django.conf import settings
 from django.utils import timezone
-
 from judge import event_poster as event
-from judge.judge_priority import BATCH_REJUDGE_PRIORITY, CONTEST_SUBMISSION_PRIORITY, DEFAULT_PRIORITY, REJUDGE_PRIORITY
+from judge.judge_priority import BATCH_REJUDGE_PRIORITY
+from judge.judge_priority import CONTEST_SUBMISSION_PRIORITY
+from judge.judge_priority import DEFAULT_PRIORITY
+from judge.judge_priority import REJUDGE_PRIORITY
 
 logger = logging.getLogger('judge.judgeapi')
 size_pack = struct.Struct('!I')
@@ -16,16 +18,22 @@ size_pack = struct.Struct('!I')
 
 def _post_update_submission(submission, done=False):
     if submission.problem.is_public:
-        event.post('submissions', {'type': 'done-submission' if done else 'update-submission',
-                                   'id': submission.id,
-                                   'contest': submission.contest_key,
-                                   'user': submission.user_id, 'problem': submission.problem_id,
-                                   'status': submission.status, 'language': submission.language.key})
+        event.post(
+            'submissions',
+            {
+                'type': 'done-submission' if done else 'update-submission',
+                'id': submission.id,
+                'contest': submission.contest_key,
+                'user': submission.user_id,
+                'problem': submission.problem_id,
+                'status': submission.status,
+                'language': submission.language.key,
+            },
+        )
 
 
 def judge_request(packet, reply=True):
-    sock = socket.create_connection(settings.BRIDGED_DJANGO_CONNECT or
-                                    settings.BRIDGED_DJANGO_ADDRESS[0])
+    sock = socket.create_connection(settings.BRIDGED_DJANGO_CONNECT or settings.BRIDGED_DJANGO_ADDRESS[0])
 
     output = json.dumps(packet, separators=(',', ':'))
     output = zlib.compress(output.encode('utf-8'))
@@ -53,13 +61,25 @@ def judge_request(packet, reply=True):
 def judge_submission(submission, rejudge=False, batch_rejudge=False, judge_id=None):
     from .models import ContestSubmission, Submission, SubmissionTestCase
 
-    updates = {'time': None, 'memory': None, 'points': None, 'result': None, 'case_points': 0, 'case_total': 0,
-               'error': None, 'rejudged_date': timezone.now() if rejudge or batch_rejudge else None, 'status': 'QU'}
+    updates = {
+        'time': None,
+        'memory': None,
+        'points': None,
+        'result': None,
+        'case_points': 0,
+        'case_total': 0,
+        'error': None,
+        'rejudged_date': timezone.now() if rejudge or batch_rejudge else None,
+        'status': 'QU',
+    }
     try:
         # This is set proactively; it might get unset in judgecallback's on_grading_begin if the problem doesn't
         # actually have pretests stored on the judge.
-        updates['is_pretested'] = all(ContestSubmission.objects.filter(submission=submission)
-                                      .values_list('problem__contest__run_pretests_only', 'problem__is_pretested')[0])
+        updates['is_pretested'] = all(
+            ContestSubmission.objects.filter(submission=submission).values_list(
+                'problem__contest__run_pretests_only', 'problem__is_pretested'
+            )[0]
+        )
     except IndexError:
         priority = DEFAULT_PRIORITY
     else:
@@ -95,6 +115,7 @@ def judge_submission(submission, rejudge=False, batch_rejudge=False, judge_id=No
     # For IDE submissions, add custom input directly to packet
     if is_ide_submission:
         from django.core.cache import cache
+
         custom_input = cache.get(f'ide_input:{submission.id}', '')
         packet['ide-custom-input'] = custom_input
 
@@ -122,6 +143,7 @@ def update_disable_judge(judge):
 
 def abort_submission(submission):
     from .models import Submission
+
     # We only want to try to abort a submission if it's still grading, otherwise this can lead to fully graded
     # submissions marked as aborted.
     if submission.status == 'D':

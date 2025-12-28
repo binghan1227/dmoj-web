@@ -1,12 +1,12 @@
+from itertools import chain
 import logging
 import socket
 import struct
 import zlib
-from itertools import chain
-
-from netaddr import IPGlob, IPSet
 
 from judge.utils.unicode import utf8text
+from netaddr import IPGlob
+from netaddr import IPSet
 
 logger = logging.getLogger('judge.bridge')
 
@@ -70,8 +70,12 @@ class ZlibPacketHandler(metaclass=RequestHandlerMeta):
 
     def read_sized_packet(self, size, initial=None):
         if size > MAX_ALLOWED_PACKET_SIZE:
-            logger.log(logging.WARNING if self._got_packet else logging.INFO,
-                       'Disconnecting client due to too-large message size (%d bytes): %s', size, self.client_address)
+            logger.log(
+                logging.WARNING if self._got_packet else logging.INFO,
+                'Disconnecting client due to too-large message size (%d bytes): %s',
+                size,
+                self.client_address,
+            )
             raise Disconnect()
 
         buffer = []
@@ -157,8 +161,8 @@ class ZlibPacketHandler(metaclass=RequestHandlerMeta):
                         self.read_sized_packet(self.read_size(remainder))
                         break
 
-                    size = size_pack.unpack(remainder[:size_pack.size])[0]
-                    remainder = remainder[size_pack.size:]
+                    size = size_pack.unpack(remainder[: size_pack.size])[0]
+                    remainder = remainder[size_pack.size :]
                     if len(remainder) <= size:
                         self.read_sized_packet(size, remainder)
                         break
@@ -174,11 +178,18 @@ class ZlibPacketHandler(metaclass=RequestHandlerMeta):
             return
         except zlib.error:
             if self._got_packet:
-                logger.warning('Encountered zlib error during packet handling, disconnecting client: %s',
-                               self.client_address, exc_info=True)
+                logger.warning(
+                    'Encountered zlib error during packet handling, disconnecting client: %s',
+                    self.client_address,
+                    exc_info=True,
+                )
             else:
-                logger.info('Potentially wrong protocol (zlib error): %s: %r', self.client_address, self._initial_tag,
-                            exc_info=True)
+                logger.info(
+                    'Potentially wrong protocol (zlib error): %s: %r',
+                    self.client_address,
+                    self._initial_tag,
+                    exc_info=True,
+                )
         except socket.timeout:
             if self._got_packet:
                 logger.info('Socket timed out: %s', self.client_address)
