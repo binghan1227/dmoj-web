@@ -369,7 +369,7 @@ class SubmissionsListBase(DiggPaginatorMixin, TitleMixin, ListView):
             # (or runs the subquery for every submission, which is even more horrifying to think about).
             queryset = queryset.filter(
                 language__in=list(
-                    Language.objects.filter(key__in=self.selected_languages).values_list('id', flat=True)
+                    Language.objects.filter(key__in=self.selected_languages).values_list('id', flat=True),
                 ),
             )
         if self.selected_statuses:

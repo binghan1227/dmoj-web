@@ -176,7 +176,9 @@ class UserPage(TitleMixin, UserMixin, DetailView):
             )
         context.update(
             self.object.ratings.aggregate(
-                min_rating=Min('rating'), max_rating=Max('rating'), contests=Count('contest')
+                min_rating=Min('rating'),
+                max_rating=Max('rating'),
+                contests=Count('contest'),
             ),
         )
         return context
