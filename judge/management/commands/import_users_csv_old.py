@@ -32,32 +32,32 @@ class Command(BaseCommand):
         parser.add_argument(
             "--dry-run",
             action="store_true",
-            help="Parse and validate, but do not write anything."
+            help="Parse and validate, but do not write anything.",
         )
         parser.add_argument(
             "--update-existing",
             action="store_true",
-            help="If a username already exists, update first/last/email but DO NOT change password."
+            help="If a username already exists, update first/last/email but DO NOT change password.",
         )
         parser.add_argument(
             "--activate",
             action="store_true",
-            help="Force is_active=True on created/updated users."
+            help="Force is_active=True on created/updated users.",
         )
 
         # Organization options (choose one of slug or name)
         parser.add_argument(
             "--org-slug",
-            help="Organization slug to attach all users to (preferred)."
+            help="Organization slug to attach all users to (preferred).",
         )
         parser.add_argument(
             "--org-name",
-            help="Organization name to attach all users to (used if slug not given)."
+            help="Organization name to attach all users to (used if slug not given).",
         )
         parser.add_argument(
             "--create-org-if-missing",
             action="store_true",
-            help="Create the organization if it is not found (needs --org-slug or --org-name)."
+            help="Create the organization if it is not found (needs --org-slug or --org-name).",
         )
 
     def handle(self, *args, **opts):
@@ -71,12 +71,12 @@ class Command(BaseCommand):
             org = self._resolve_organization(
                 slug=opts.get("org_slug"),
                 name=opts.get("org_name"),
-                create_if_missing=opts.get("create_org_if_missing")
+                create_if_missing=opts.get("create_org_if_missing"),
             )
             if org is None:
                 raise CommandError(
                     "Organization not found. Provide a valid --org-slug/--org-name "
-                    "or use --create-org-if-missing."
+                    "or use --create-org-if-missing.",
                 )
 
         rows = self._read_csv(csv_path)
@@ -89,11 +89,11 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.NOTICE(
             f"Importing {len(rows)} users from {csv_path} "
-            f"(dry-run={opts['dry_run']}, update-existing={opts['update_existing']})"
+            f"(dry-run={opts['dry_run']}, update-existing={opts['update_existing']})",
         ))
         if org:
             self.stdout.write(self.style.NOTICE(
-                f"Target organization: {getattr(org, 'slug', None) or getattr(org, 'name', None)}"
+                f"Target organization: {getattr(org, 'slug', None) or getattr(org, 'name', None)}",
             ))
 
         for i, row in enumerate(rows, start=1):
@@ -120,13 +120,13 @@ class Command(BaseCommand):
             except Exception as e:
                 errors += 1
                 self.stderr.write(self.style.ERROR(
-                    f"[Row {i}] Error processing username='{row.get('username', '')}' : {e}"
+                    f"[Row {i}] Error processing username='{row.get('username', '')}' : {e}",
                 ))
 
         self.stdout.write("")
         self.stdout.write(self.style.SUCCESS(
             f"Done. Created: {created}, Updated: {updated}, Skipped: {skipped}, "
-            f"Org-linked: {org_linked}, Errors: {errors}"
+            f"Org-linked: {org_linked}, Errors: {errors}",
         ))
 
     # ---- helpers ----
@@ -231,7 +231,7 @@ class Command(BaseCommand):
         except Exception:
             self.stderr.write(self.style.WARNING(
                 "Organization model not found in judge.models. "
-                "Skipping organization linking."
+                "Skipping organization linking.",
             ))
             return None
 
@@ -262,7 +262,7 @@ class Command(BaseCommand):
                 create_kwargs.setdefault("hidden", False)
             org = Organization.objects.create(**create_kwargs)
             self.stdout.write(self.style.SUCCESS(
-                f"Created organization '{getattr(org, 'slug', None) or getattr(org, 'name', None)}'"
+                f"Created organization '{getattr(org, 'slug', None) or getattr(org, 'name', None)}'",
             ))
         return org
 
@@ -339,6 +339,6 @@ class Command(BaseCommand):
         if not linked:
             self.stderr.write(self.style.WARNING(
                 f"Could not determine how to link user '{user.username}' to organization; "
-                "please adjust _add_user_to_org to your schema."
+                "please adjust _add_user_to_org to your schema.",
             ))
         return linked
