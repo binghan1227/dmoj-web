@@ -75,7 +75,8 @@ class PostList(ListView):
         context['post_comment_counts'] = {
             int(page[2:]): count
             for page, count in Comment.objects.filter(
-                page__in=['b:%d' % post.id for post in context['posts']], hidden=False
+                page__in=['b:%d' % post.id for post in context['posts']],
+                hidden=False,
             )
             .values_list('page')
             .annotate(count=Count('page'))
@@ -131,7 +132,9 @@ class PostView(TitleMixin, CommentedDetailView):
         context = super(PostView, self).get_context_data(**kwargs)
 
         metadata = generate_opengraph(
-            'generated-meta-blog:%d' % self.object.id, self.object.summary or self.object.content, 'blog'
+            'generated-meta-blog:%d' % self.object.id,
+            self.object.summary or self.object.content,
+            'blog',
         )
         context['meta_description'] = metadata[0]
         context['og_image'] = self.object.og_image or metadata[1]

@@ -57,7 +57,7 @@ class CustomRegistrationForm(RegistrationForm):
         if User.objects.filter(email=self.cleaned_data['email']).exists():
             raise forms.ValidationError(
                 gettext('The email address "%s" is already taken. Only one registration is allowed per address.')
-                % self.cleaned_data['email']
+                % self.cleaned_data['email'],
             )
         validate_email_domain(self.cleaned_data['email'])
         return self.cleaned_data['email']
@@ -71,7 +71,7 @@ class CustomRegistrationForm(RegistrationForm):
                     'You may not be part of more than {count} public organization.',
                     'You may not be part of more than {count} public organizations.',
                     max_orgs,
-                ).format(count=max_orgs)
+                ).format(count=max_orgs),
             )
         return self.cleaned_data['organizations']
 

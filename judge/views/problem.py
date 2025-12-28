@@ -83,7 +83,7 @@ from reversion import revisions
 
 recjk = re.compile(
     r'[\u2E80-\u2E99\u2E9B-\u2EF3\u2F00-\u2FD5\u3005\u3007\u3021-\u3029\u3038-\u303A\u303B\u3400-\u4DB5'
-    r'\u4E00-\u9FC3\uF900-\uFA2D\uFA30-\uFA6A\uFA70-\uFAD9\U00020000-\U0002A6D6\U0002F800-\U0002FA1D]'
+    r'\u4E00-\u9FC3\uF900-\uFA2D\uFA30-\uFA6A\uFA70-\uFAD9\U00020000-\U0002A6D6\U0002F800-\U0002FA1D]',
 )
 
 
@@ -116,7 +116,10 @@ class ProblemMixin(object):
     def no_such_problem(self):
         code = self.kwargs.get(self.slug_url_kwarg, None)
         return generic_message(
-            self.request, _('No such problem'), _('Could not find a problem with the code "%s".') % code, status=404
+            self.request,
+            _('No such problem'),
+            _('Could not find a problem with the code "%s".') % code,
+            status=404,
         )
 
     def get(self, request, *args, **kwargs):
@@ -165,9 +168,11 @@ class ProblemSolution(SolvedProblemMixin, ProblemMixin, TitleMixin, CommentedDet
         return mark_safe(
             escape(_('Editorial for {0}')).format(
                 format_html(
-                    '<a href="{1}">{0}</a>', self.object.name, reverse('problem_detail', args=[self.object.code])
+                    '<a href="{1}">{0}</a>',
+                    self.object.name,
+                    reverse('problem_detail', args=[self.object.code]),
                 ),
-            )
+            ),
         )
 
     def get_context_data(self, **kwargs):
@@ -293,7 +298,7 @@ class ProblemDetail(ProblemMixin, SolvedProblemMixin, CommentedDetailView):
                     Judge.objects.filter(online=True, problems=self.object).values_list('name', 'name'),
                 )
             form.fields['language'].queryset = self.object.usable_languages.order_by('name', 'key').prefetch_related(
-                Prefetch('runtimeversion_set', RuntimeVersion.objects.order_by('priority'))
+                Prefetch('runtimeversion_set', RuntimeVersion.objects.order_by('priority')),
             )
             form.fields['source'].widget.theme = self.request.profile.resolved_ace_theme
             if self.request.profile.language:
@@ -414,7 +419,7 @@ class ProblemPdfView(ProblemMixin, SingleObjectMixin, View):
                             'problem_name': problem_name,
                             'description': trans.description if trans else problem.description,
                             'url': request.build_absolute_uri(),
-                        }
+                        },
                     )
                     .replace('"//', '"https://')
                     .replace("'//", "'https://"),
@@ -518,14 +523,14 @@ class ProblemList(QueryStringSortMixin, TitleMixin, SolvedProblemMixin, ListView
                 i18n_translation=FilteredRelation(
                     'problem__translations',
                     condition=Q(problem__translations__language=self.request.LANGUAGE_CODE),
-                )
+                ),
             )
             .annotate(
                 i18n_name=Coalesce(
                     F('i18n_translation__name'),
                     F('problem__name'),
                     output_field=CharField(),
-                )
+                ),
             )
             .order_by('order')
         )
@@ -558,7 +563,7 @@ class ProblemList(QueryStringSortMixin, TitleMixin, SolvedProblemMixin, ListView
             # MariaDB can't tokenize CJK properly, fallback to LIKE '%term%' for each term.
             for term in query.split():
                 queryset = queryset.filter(
-                    Q(code__icontains=term) | Q(name__icontains=term) | Q(description__icontains=term)
+                    Q(code__icontains=term) | Q(name__icontains=term) | Q(description__icontains=term),
                 )
             return queryset
         return queryset.search(query, queryset.BOOLEAN).extra(order_by=['-relevance'])
@@ -576,8 +581,10 @@ class ProblemList(QueryStringSortMixin, TitleMixin, SolvedProblemMixin, ListView
         if self.profile is not None and self.hide_solved:
             queryset = queryset.exclude(
                 id__in=Submission.objects.filter(
-                    user=self.profile, result='AC', case_points__gte=F('case_total')
-                ).values_list('problem_id', flat=True)
+                    user=self.profile,
+                    result='AC',
+                    case_points__gte=F('case_total'),
+                ).values_list('problem_id', flat=True),
             )
         if self.show_types:
             queryset = queryset.prefetch_related('types')
@@ -586,7 +593,7 @@ class ProblemList(QueryStringSortMixin, TitleMixin, SolvedProblemMixin, ListView
                 When(solution__is_public=True, solution__publish_on__lte=timezone.now(), then=True),
                 default=False,
                 output_field=BooleanField(),
-            )
+            ),
         )
         if self.has_public_editorial:
             queryset = queryset.filter(has_public_editorial=True)
@@ -603,7 +610,7 @@ class ProblemList(QueryStringSortMixin, TitleMixin, SolvedProblemMixin, ListView
                     queryset = queryset.filter(
                         Q(code__icontains=query)
                         | Q(name__icontains=query)
-                        | Q(translations__name__icontains=query, translations__language=self.request.LANGUAGE_CODE)
+                        | Q(translations__name__icontains=query, translations__language=self.request.LANGUAGE_CODE),
                     )
         self.prepoint_queryset = queryset
         if self.point_start is not None:
@@ -756,7 +763,8 @@ class RandomProblem(ProblemList):
         count = queryset.count()
         if not count:
             return HttpResponseRedirect(
-                '%s%s%s' % (reverse('problem_list'), request.META['QUERY_STRING'] and '?', request.META['QUERY_STRING'])
+                '%s%s%s'
+                % (reverse('problem_list'), request.META['QUERY_STRING'] and '?', request.META['QUERY_STRING']),
             )
         return HttpResponseRedirect(queryset[randrange(count)].get_absolute_url())
 
@@ -835,7 +843,7 @@ class ProblemSubmit(LoginRequiredMixin, ProblemMixin, TitleMixin, SingleObjectFo
         form = super().get_form(form_class)
 
         form.fields['language'].queryset = self.object.usable_languages.order_by('name', 'key').prefetch_related(
-            Prefetch('runtimeversion_set', RuntimeVersion.objects.order_by('priority'))
+            Prefetch('runtimeversion_set', RuntimeVersion.objects.order_by('priority')),
         )
 
         form_data = getattr(form, 'cleaned_data', form.initial)
@@ -865,13 +873,15 @@ class ProblemSubmit(LoginRequiredMixin, ProblemMixin, TitleMixin, SingleObjectFo
                 _('Banned from submitting'),
                 _(
                     'You have been declared persona non grata for this problem. '
-                    'You are permanently barred from submitting to this problem.'
+                    'You are permanently barred from submitting to this problem.',
                 ),
             )
         # Must check for zero and not None. None means infinite submissions remaining.
         if self.remaining_submission_count == 0:
             return generic_message(
-                self.request, _('Too many submissions'), _('You have exceeded the submission limit for this problem.')
+                self.request,
+                _('Too many submissions'),
+                _('You have exceeded the submission limit for this problem.'),
             )
 
         with transaction.atomic():

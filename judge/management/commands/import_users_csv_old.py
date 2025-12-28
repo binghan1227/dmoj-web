@@ -93,13 +93,13 @@ class Command(BaseCommand):
             self.style.NOTICE(
                 f'Importing {len(rows)} users from {csv_path} '
                 f'(dry-run={opts["dry_run"]}, update-existing={opts["update_existing"]})',
-            )
+            ),
         )
         if org:
             self.stdout.write(
                 self.style.NOTICE(
                     f'Target organization: {getattr(org, "slug", None) or getattr(org, "name", None)}',
-                )
+                ),
             )
 
         for i, row in enumerate(rows, start=1):
@@ -128,7 +128,7 @@ class Command(BaseCommand):
                 self.stderr.write(
                     self.style.ERROR(
                         f"[Row {i}] Error processing username='{row.get('username', '')}' : {e}",
-                    )
+                    ),
                 )
 
         self.stdout.write('')
@@ -136,7 +136,7 @@ class Command(BaseCommand):
             self.style.SUCCESS(
                 f'Done. Created: {created}, Updated: {updated}, Skipped: {skipped}, '
                 f'Org-linked: {org_linked}, Errors: {errors}',
-            )
+            ),
         )
 
     # ---- helpers ----
@@ -243,7 +243,7 @@ class Command(BaseCommand):
             self.stderr.write(
                 self.style.WARNING(
                     'Organization model not found in judge.models. Skipping organization linking.',
-                )
+                ),
             )
             return None
 
@@ -276,7 +276,7 @@ class Command(BaseCommand):
             self.stdout.write(
                 self.style.SUCCESS(
                     f"Created organization '{getattr(org, 'slug', None) or getattr(org, 'name', None)}'",
-                )
+                ),
             )
         return org
 
@@ -360,6 +360,6 @@ class Command(BaseCommand):
                 self.style.WARNING(
                     f"Could not determine how to link user '{user.username}' to organization; "
                     'please adjust _add_user_to_org to your schema.',
-                )
+                ),
             )
         return linked

@@ -31,5 +31,5 @@ def relative_time(time, **kwargs):
     return mark_safe(
         f'<span data-iso="{time.astimezone(timezone.utc).isoformat()}" class="time-with-rel"'
         f' title="{escape(abs_time)}" data-format="{escape(kwargs.get("rel", _("{time}")))}">'
-        f'{escape(kwargs.get("abs", _("on {time}")).replace("{time}", abs_time))}</span>'
+        f'{escape(kwargs.get("abs", _("on {time}")).replace("{time}", abs_time))}</span>',
     )

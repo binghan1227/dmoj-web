@@ -57,7 +57,7 @@ class ContestTestCase(CommonDataMixin, TestCase):
                     username='non_staff_spectator',
                     is_staff=False,
                 ),
-            }
+            },
         )
 
         self.users['normal_open_org'].profile.organizations.add(self.organizations['open'])

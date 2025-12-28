@@ -175,7 +175,9 @@ class UserPage(TitleMixin, UserMixin, DetailView):
                 + 1
             )
         context.update(
-            self.object.ratings.aggregate(min_rating=Min('rating'), max_rating=Max('rating'), contests=Count('contest'))
+            self.object.ratings.aggregate(
+                min_rating=Min('rating'), max_rating=Max('rating'), contests=Count('contest')
+            ),
         )
         return context
 
@@ -237,8 +239,8 @@ class UserAboutPage(UserPage):
                         'height': '%.3fem' % rating_progress(rating.rating),
                     }
                     for rating in ratings
-                ]
-            )
+                ],
+            ),
         )
 
         submissions = (
@@ -248,18 +250,18 @@ class UserAboutPage(UserPage):
         )
 
         context['submission_data'] = mark_safe(
-            json.dumps({date_counts['date_only'].isoformat(): date_counts['cnt'] for date_counts in submissions})
+            json.dumps({date_counts['date_only'].isoformat(): date_counts['cnt'] for date_counts in submissions}),
         )
         context['submission_metadata'] = mark_safe(
             json.dumps(
                 {
                     'min_year': (
                         self.object.submission_set.annotate(year_only=ExtractYear('date')).aggregate(
-                            min_year=Min('year_only')
+                            min_year=Min('year_only'),
                         )['min_year']
                     ),
-                }
-            )
+                },
+            ),
         )
         return context
 
@@ -272,7 +274,10 @@ class UserProblemsPage(UserPage):
 
         result = (
             Submission.objects.filter(
-                user=self.object, points__gt=0, problem__is_public=True, problem__is_organization_private=False
+                user=self.object,
+                points__gt=0,
+                problem__is_public=True,
+                problem__is_organization_private=False,
             )
             .exclude(problem__in=self.get_completed_problems() if self.hide_solved else [])
             .values('problem__id', 'problem__code', 'problem__name', 'problem__points', 'problem__group__full_name')
@@ -332,7 +337,7 @@ class UserPerformancePointsAjax(UserProblemsPage):
             {
                 'results': utf8text(httpresp.content),
                 'has_more': self.has_more,
-            }
+            },
         )
 
 
@@ -639,8 +644,8 @@ class EmailChangeRequestView(LoginRequiredMixin, TitleMixin, FormView):
                 {
                     'id': self.request.user.id,
                     'email': new_email,
-                }
-            ).encode()
+                },
+            ).encode(),
         ).decode()
 
         current_site = get_current_site(self.request)
@@ -718,7 +723,7 @@ class EmailChangeActivateView(LoginRequiredMixin, View):
                 raise self.EmailChangeFailedError(
                     _(
                         'The email you originally requested has since been registered by another user. '
-                        'Please try again with a new email.'
+                        'Please try again with a new email.',
                     ),
                 )
             request.user.email = to_email

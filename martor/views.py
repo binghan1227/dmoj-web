@@ -38,20 +38,20 @@ def markdown_search_user(request):
                 {
                     'status': 200,
                     'data': [{'username': u.username} for u in users],
-                }
+                },
             )
             return HttpResponse(json.dumps(data, cls=LazyEncoder), content_type='application/json')
         data.update(
             {
                 'status': 204,
                 'error': _('No users registered as `%(username)s` or user is unactived.') % {'username': username},
-            }
+            },
         )
     else:
         data.update(
             {
                 'status': 204,
                 'error': _('Validation Failed for field `username`'),
-            }
+            },
         )
     return HttpResponse(json.dumps(data, cls=LazyEncoder), content_type='application/json')

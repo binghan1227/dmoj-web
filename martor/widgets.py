@@ -57,7 +57,7 @@ class MartorWidget(forms.Textarea):
                 'uploads_enabled': self.UPLOADS_ENABLED,
                 'editor_msg': self.editor_msg,
                 'button_text': self.button_text,
-            }
+            },
         )
 
     class Media:

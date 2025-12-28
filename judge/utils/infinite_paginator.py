@@ -139,5 +139,5 @@ class InfinitePaginationMixin:
                 % {
                     'page_number': page_number,
                     'message': str(e),
-                }
+                },
             )

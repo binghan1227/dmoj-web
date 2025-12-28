@@ -30,7 +30,7 @@ class Migration(migrations.Migration):
                 help_text='Maximum number of submissions for this problem, or leave blank for no limit.',
                 null=True,
                 validators=[
-                    judge.models.contest.MinValueOrNoneValidator(1, "Why include a problem you can't submit to?")
+                    judge.models.contest.MinValueOrNoneValidator(1, "Why include a problem you can't submit to?"),
                 ],
             ),
         ),

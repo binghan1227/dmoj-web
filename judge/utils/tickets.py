@@ -10,5 +10,5 @@ def own_ticket_filter(profile_id):
 def filter_visible_tickets(queryset, user):
     return queryset.filter(
         own_ticket_filter(user.profile.id)
-        | Q(content_type=ContentType.objects.get_for_model(Problem), object_id__in=Problem.get_editable_problems(user))
+        | Q(content_type=ContentType.objects.get_for_model(Problem), object_id__in=Problem.get_editable_problems(user)),
     ).distinct()

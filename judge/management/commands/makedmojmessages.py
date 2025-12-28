@@ -90,7 +90,7 @@ class Command(MakeMessagesCommand):
 
         if locale is None and not exclude and not process_all:
             raise CommandError(
-                "Type '%s help %s' for usage information." % (os.path.basename(sys.argv[0]), sys.argv[1])
+                "Type '%s help %s' for usage information." % (os.path.basename(sys.argv[0]), sys.argv[1]),
             )
 
         self.invoked_for_django = False
@@ -148,7 +148,7 @@ class Command(MakeMessagesCommand):
 msgid "%s"
 msgstr ""
 """
-            % string.replace('\\', r'\\').replace('\t', '\\t').replace('\n', '\\n').replace('"', '\\"')
+            % string.replace('\\', r'\\').replace('\t', '\\t').replace('\n', '\\n').replace('"', '\\"'),
         )
 
     def process_files(self, file_list):

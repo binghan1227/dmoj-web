@@ -87,7 +87,8 @@ class ContestSubmissionInline(admin.StackedInline):
         if submission:
             if db_field.name == 'participation':
                 kwargs['queryset'] = ContestParticipation.objects.filter(
-                    user=submission.user, contest__problems=submission.problem
+                    user=submission.user,
+                    contest__problems=submission.problem,
                 ).only('id', 'contest__name', 'virtual')
 
                 def label(obj):  # noqa: F811
@@ -98,7 +99,9 @@ class ContestSubmissionInline(admin.StackedInline):
                     return obj.contest.name
             elif db_field.name == 'problem':
                 kwargs['queryset'] = ContestProblem.objects.filter(problem=submission.problem).only(
-                    'id', 'problem__name', 'contest__name'
+                    'id',
+                    'problem__name',
+                    'contest__name',
                 )
 
                 def label(obj):  # noqa: F811
@@ -210,7 +213,9 @@ class SubmissionAdmin(VersionAdmin):
     def judge(self, request, queryset):
         if not request.user.has_perm('judge.rejudge_submission') or not request.user.has_perm('judge.edit_own_problem'):
             self.message_user(
-                request, gettext('You do not have the permission to rejudge submissions.'), level=messages.ERROR
+                request,
+                gettext('You do not have the permission to rejudge submissions.'),
+                level=messages.ERROR,
             )
             return
         queryset = queryset.order_by('id')
@@ -244,14 +249,16 @@ class SubmissionAdmin(VersionAdmin):
     def recalculate_score(self, request, queryset):
         if not request.user.has_perm('judge.rejudge_submission'):
             self.message_user(
-                request, gettext('You do not have the permission to rejudge submissions.'), level=messages.ERROR
+                request,
+                gettext('You do not have the permission to rejudge submissions.'),
+                level=messages.ERROR,
             )
             return
         submissions = list(
             queryset.defer(None)
             .select_related(None)
             .select_related('problem')
-            .only('points', 'case_points', 'case_total', 'problem__partial', 'problem__points')
+            .only('points', 'case_points', 'case_total', 'problem__partial', 'problem__points'),
         )
         for submission in submissions:
             submission.points = round(
@@ -271,7 +278,7 @@ class SubmissionAdmin(VersionAdmin):
             cache.delete('user_attempted:%d' % profile.id)
 
         for participation in ContestParticipation.objects.filter(
-            id__in=queryset.values_list('contest__participation_id')
+            id__in=queryset.values_list('contest__participation_id'),
         ).prefetch_related('contest'):
             participation.recompute_results()
 

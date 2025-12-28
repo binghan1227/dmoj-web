@@ -161,7 +161,8 @@ def rate_contest(contest):
             last_rating=Coalesce(Subquery(rating_sorted.values('rating')[:1]), RATING_INIT),
             last_mean=Coalesce(Subquery(rating_sorted.values('mean')[:1]), MEAN_INIT),
             times=Coalesce(
-                Subquery(rating_subquery.order_by().values('user_id').annotate(count=Count('id')).values('count')), 0
+                Subquery(rating_subquery.order_by().values('user_id').annotate(count=Count('id')).values('count')),
+                0,
             ),
         )
         .exclude(user_id__in=contest.rate_exclude.all())
@@ -196,7 +197,14 @@ def rate_contest(contest):
     now = timezone.now()
     ratings = [
         Rating(
-            user_id=i, contest=contest, rating=r, mean=m, performance=perf, last_rated=now, participation_id=pid, rank=z
+            user_id=i,
+            contest=contest,
+            rating=r,
+            mean=m,
+            performance=perf,
+            last_rated=now,
+            participation_id=pid,
+            rank=z,
         )
         for i, pid, r, m, perf, z in zip(user_ids, participation_ids, rating, mean, performance, ranking)
     ]
@@ -205,8 +213,8 @@ def rate_contest(contest):
 
         Profile.objects.filter(contest_history__contest=contest, contest_history__virtual=0).update(
             rating=Subquery(
-                Rating.objects.filter(user=OuterRef('id')).order_by('-contest__end_time').values('rating')[:1]
-            )
+                Rating.objects.filter(user=OuterRef('id')).order_by('-contest__end_time').values('rating')[:1],
+            ),
         )
 
 

@@ -58,7 +58,9 @@ def get_user_info(usernames):
     return {
         name: (rank, rating)
         for name, rank, rating in Profile.objects.filter(user__username__in=usernames).values_list(
-            'user__username', 'display_rank', 'rating'
+            'user__username',
+            'display_rank',
+            'rating',
         )
     }
 
@@ -159,7 +161,7 @@ def link_user(user):
     return mark_safe(
         f'<span class="{profile.css_class}">'
         f'<a href="{escape(reverse("user_page", args=[user.username]))}">'
-        f'{escape(profile.display_name)}</a></span>'
+        f'{escape(profile.display_name)}</a></span>',
     )
 
 

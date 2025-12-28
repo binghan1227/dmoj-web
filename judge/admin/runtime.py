@@ -69,7 +69,7 @@ django.jQuery(document).ready(function ($) {{
 """,
                 name,
                 _('Regenerate'),
-            )
+            ),
         )
 
 

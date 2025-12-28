@@ -41,7 +41,8 @@ def vote_comment(request, delta):
 
     if not request.user.is_staff and not request.profile.has_any_solves:
         return HttpResponseBadRequest(
-            _('You must solve at least one problem before you can vote.'), content_type='text/plain'
+            _('You must solve at least one problem before you can vote.'),
+            content_type='text/plain',
         )
 
     if request.profile.mute:
@@ -184,7 +185,10 @@ class CommentVotesAjax(PermissionRequiredMixin, CommentMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super(CommentVotesAjax, self).get_context_data(**kwargs)
         context['votes'] = self.object.votes.select_related('voter__user').only(
-            'id', 'voter__display_rank', 'voter__user__username', 'score'
+            'id',
+            'voter__display_rank',
+            'voter__user__username',
+            'score',
         )
         return context
 

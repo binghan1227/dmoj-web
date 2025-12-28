@@ -108,7 +108,8 @@ class ICPCContestFormat(DefaultContestFormat):
         if format_data:
             penalty = (
                 format_html(
-                    '<small style="color:red"> ({penalty})</small>', penalty=floatformat(format_data['penalty'])
+                    '<small style="color:red"> ({penalty})</small>',
+                    penalty=floatformat(format_data['penalty']),
                 )
                 if format_data['penalty']
                 else ''
@@ -154,5 +155,5 @@ class ICPCContestFormat(DefaultContestFormat):
 
         yield _(
             'Ties will be broken by the sum of the last score altering submission time on problems with a non-zero '
-            'score, followed by the time of the last score altering submission.'
+            'score, followed by the time of the last score altering submission.',
         )

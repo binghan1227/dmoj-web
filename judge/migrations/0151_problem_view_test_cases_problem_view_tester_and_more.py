@@ -36,7 +36,10 @@ class Migration(migrations.Migration):
             model_name='contest',
             name='rate_exclude',
             field=models.ManyToManyField(
-                blank=True, related_name='rate_exclude+', to='judge.profile', verbose_name='exclude from ratings'
+                blank=True,
+                related_name='rate_exclude+',
+                to='judge.profile',
+                verbose_name='exclude from ratings',
             ),
         ),
         migrations.AlterField(
@@ -105,7 +108,9 @@ class Migration(migrations.Migration):
             model_name='problemtestcase',
             name='checker_args',
             field=models.TextField(
-                blank=True, help_text='checker arguments as a JSON object', verbose_name='checker arguments'
+                blank=True,
+                help_text='checker arguments as a JSON object',
+                verbose_name='checker arguments',
             ),
         ),
         migrations.AlterField(

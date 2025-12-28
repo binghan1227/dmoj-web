@@ -19,7 +19,7 @@ class Migration(migrations.Migration):
                 max_length=64,
                 null=True,
                 validators=[
-                    django.core.validators.RegexValidator('^[a-f0-9]{64}$', 'API token must be None or hexadecimal')
+                    django.core.validators.RegexValidator('^[a-f0-9]{64}$', 'API token must be None or hexadecimal'),
                 ],
                 verbose_name='API token',
             ),

@@ -21,8 +21,8 @@ def validate_email_domain(email: str) -> None:
         if domain in settings.BAD_MAIL_PROVIDERS or any(regex.match(domain) for regex in bad_mail_regex):
             raise ValidationError(
                 gettext(
-                    'Your email provider is not allowed due to history of abuse. Please use a reputable email provider.'
-                )
+                    'Your email provider is not allowed due to history of abuse. Please use a reputable email provider.',
+                ),
             )
 
 

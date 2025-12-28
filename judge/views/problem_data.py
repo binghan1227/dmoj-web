@@ -123,7 +123,7 @@ class ProblemCaseForm(ModelForm):
 
 
 class ProblemCaseFormSet(
-    formset_factory(ProblemCaseForm, formset=BaseModelFormSet, extra=1, max_num=1, can_delete=True)
+    formset_factory(ProblemCaseForm, formset=BaseModelFormSet, extra=1, max_num=1, can_delete=True),
 ):
     model = ProblemTestCase
 
@@ -157,9 +157,11 @@ class ProblemSubmissionDiff(TitleMixin, ProblemMixin, DetailView):
         return mark_safe(
             escape(_('Comparing submissions for {0}')).format(
                 format_html(
-                    '<a href="{1}">{0}</a>', self.object.name, reverse('problem_detail', args=[self.object.code])
+                    '<a href="{1}">{0}</a>',
+                    self.object.name,
+                    reverse('problem_detail', args=[self.object.code]),
                 ),
-            )
+            ),
         )
 
     def get_object(self, queryset=None):
@@ -201,9 +203,11 @@ class ProblemDataView(TitleMixin, ProblemManagerMixin):
             escape(_('Editing data for %s'))
             % (
                 format_html(
-                    '<a href="{1}">{0}</a>', self.object.name, reverse('problem_detail', args=[self.object.code])
+                    '<a href="{1}">{0}</a>',
+                    self.object.name,
+                    reverse('problem_detail', args=[self.object.code]),
                 )
-            )
+            ),
         )
 
     def get_data_form(self, post=False):
@@ -271,7 +275,7 @@ class ProblemDataView(TitleMixin, ProblemManagerMixin):
             ProblemDataCompiler.generate(problem, data, problem.cases.order_by('order'), valid_files)
             return HttpResponseRedirect(request.get_full_path())
         return self.render_to_response(
-            self.get_context_data(data_form=data_form, cases_formset=cases_formset, valid_files=valid_files)
+            self.get_context_data(data_form=data_form, cases_formset=cases_formset, valid_files=valid_files),
         )
 
     put = post
@@ -324,7 +328,7 @@ def problem_init_view(request, problem):
             'title': _('Generated init.yml for %s') % problem.name,
             'content_title': mark_safe(
                 escape(_('Generated init.yml for %s'))
-                % (format_html('<a href="{1}">{0}</a>', problem.name, reverse('problem_detail', args=[problem.code])))
+                % (format_html('<a href="{1}">{0}</a>', problem.name, reverse('problem_detail', args=[problem.code]))),
             ),
         },
     )

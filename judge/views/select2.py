@@ -42,7 +42,7 @@ class Select2View(BaseListView):
                     for obj in context['object_list']
                 ],
                 'more': context['page_obj'].has_next(),
-            }
+            },
         )
 
     def get_name(self, obj):
@@ -70,14 +70,14 @@ class ClassSelect2View(Select2View):
 class ProblemSelect2View(Select2View):
     def get_queryset(self):
         return Problem.get_visible_problems(self.request.user).filter(
-            Q(code__icontains=self.term) | Q(name__icontains=self.term)
+            Q(code__icontains=self.term) | Q(name__icontains=self.term),
         )
 
 
 class ContestSelect2View(Select2View):
     def get_queryset(self):
         return Contest.get_visible_contests(self.request.user).filter(
-            Q(key__icontains=self.term) | Q(name__icontains=self.term)
+            Q(key__icontains=self.term) | Q(name__icontains=self.term),
         )
 
 
@@ -100,7 +100,11 @@ class UserSearchSelect2View(BaseListView):
         self.gravatar_default = request.GET.get('gravatar_default', None)
 
         self.object_list = self.get_queryset().values_list(
-            'pk', 'user__username', 'user__email', 'display_rank', 'username_display_override'
+            'pk',
+            'user__username',
+            'user__email',
+            'display_rank',
+            'username_display_override',
         )
 
         context = self.get_context_data()
@@ -117,7 +121,7 @@ class UserSearchSelect2View(BaseListView):
                     for pk, username, email, display_rank, username_override in context['object_list']
                 ],
                 'more': context['page_obj'].has_next(),
-            }
+            },
         )
 
     def get_name(self, obj):

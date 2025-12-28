@@ -34,7 +34,11 @@ class Migration(migrations.Migration):
                 (
                     'access_code',
                     models.CharField(
-                        blank=True, help_text='student access code', max_length=7, null=True, verbose_name='access code'
+                        blank=True,
+                        help_text='student access code',
+                        max_length=7,
+                        null=True,
+                        verbose_name='access code',
                     ),
                 ),
                 (
@@ -87,7 +91,9 @@ class Migration(migrations.Migration):
         migrations.AddConstraint(
             model_name='class',
             constraint=models.UniqueConstraint(
-                condition=models.Q(is_active=True), fields=('name',), name='unique_active_name'
+                condition=models.Q(is_active=True),
+                fields=('name',),
+                name='unique_active_name',
             ),
         ),
         migrations.AddField(

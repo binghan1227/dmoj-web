@@ -103,7 +103,7 @@ def recalculate_ratings(old_rating, old_volatility, actual_rank, times_rated, is
             new_volatility[i] = 385
         else:
             new_volatility[i] = math.sqrt(
-                ((new_rating[i] - old_rating[i]) ** 2) / Weight + (old_volatility[i] ** 2) / (Weight + 1)
+                ((new_rating[i] - old_rating[i]) ** 2) / Weight + (old_volatility[i] ** 2) / (Weight + 1),
             )
 
         if is_disqualified[i]:
@@ -132,13 +132,22 @@ def tc_rate_contest(contest, Rating, Profile):
             last_rating=Coalesce(Subquery(rating_sorted.values('rating')[:1]), 1200),
             volatility=Coalesce(Subquery(rating_sorted.values('volatility')[:1]), 535),
             times=Coalesce(
-                Subquery(rating_subquery.order_by().values('user_id').annotate(count=Count('id')).values('count')), 0
+                Subquery(rating_subquery.order_by().values('user_id').annotate(count=Count('id')).values('count')),
+                0,
             ),
         )
         .exclude(user_id__in=contest.rate_exclude.all())
         .filter(virtual=0)
         .values(
-            'id', 'user_id', 'score', 'cumtime', 'tiebreaker', 'is_disqualified', 'last_rating', 'volatility', 'times'
+            'id',
+            'user_id',
+            'score',
+            'cumtime',
+            'tiebreaker',
+            'is_disqualified',
+            'last_rating',
+            'volatility',
+            'times',
         )
     )
     if not contest.rate_all:
@@ -167,7 +176,7 @@ def tc_rate_contest(contest, Rating, Profile):
     Rating.objects.bulk_create(ratings)
 
     Profile.objects.filter(contest_history__contest=contest, contest_history__virtual=0).update(
-        rating=Subquery(Rating.objects.filter(user=OuterRef('id')).order_by('-contest__end_time').values('rating')[:1])
+        rating=Subquery(Rating.objects.filter(user=OuterRef('id')).order_by('-contest__end_time').values('rating')[:1]),
     )
 
 

@@ -163,7 +163,7 @@ class IDESubmitView(LoginRequiredMixin, View):
                 'success': True,
                 'submission_id': submission.id,
                 'submission_url': reverse('ide_submission_status', args=[submission.id]),
-            }
+            },
         )
 
 

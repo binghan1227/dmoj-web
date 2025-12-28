@@ -14,7 +14,9 @@ class Migration(migrations.Migration):
             model_name='contestparticipation',
             name='is_disqualified',
             field=models.BooleanField(
-                default=False, help_text='Whether this participation is disqualified.', verbose_name='is disqualified'
+                default=False,
+                help_text='Whether this participation is disqualified.',
+                verbose_name='is disqualified',
             ),
         ),
         migrations.AlterField(

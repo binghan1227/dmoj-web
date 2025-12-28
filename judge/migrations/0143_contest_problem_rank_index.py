@@ -13,7 +13,8 @@ class Migration(migrations.Migration):
         migrations.AddIndex(
             model_name='submission',
             index=models.Index(
-                fields=['contest_object', 'problem', 'user', '-points', '-time'], name='judge_submi_contest_59fbe3_idx'
+                fields=['contest_object', 'problem', 'user', '-points', '-time'],
+                name='judge_submi_contest_59fbe3_idx',
             ),
         ),
     ]

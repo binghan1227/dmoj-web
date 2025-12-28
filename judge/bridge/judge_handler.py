@@ -144,8 +144,10 @@ class JudgeHandler(ZlibPacketHandler):
         self.judge_address = '[%s]:%s' % (self.client_address[0], self.client_address[1])
         json_log.info(
             self._make_json_log(
-                action='auth', info='judge successfully authenticated', executors=list(self.executors.keys())
-            )
+                action='auth',
+                info='judge successfully authenticated',
+                executors=list(self.executors.keys()),
+            ),
         )
 
     def _disconnected(self):
@@ -221,13 +223,16 @@ class JudgeHandler(ZlibPacketHandler):
                     sub=self._working,
                     action='request',
                     info='submission vanished when fetching info',
-                )
+                ),
             )
             return
 
         attempt_no = (
             Submission.objects.filter(
-                problem__id=pid, contest__participation__id=part_id, user__id=uid, date__lt=sub_date
+                problem__id=pid,
+                contest__participation__id=part_id,
+                user__id=uid,
+                date__lt=sub_date,
             )
             .exclude(status__in=('CE', 'IE'))
             .count()
@@ -386,7 +391,11 @@ class JudgeHandler(ZlibPacketHandler):
         self.batch_id = None
 
         if Submission.objects.filter(id=packet['submission-id']).update(
-            status='G', is_pretested=packet['pretested'], current_testcase=1, batch=False, judged_date=timezone.now()
+            status='G',
+            is_pretested=packet['pretested'],
+            current_testcase=1,
+            batch=False,
+            judged_date=timezone.now(),
         ):
             SubmissionTestCase.objects.filter(submission_id=packet['submission-id']).delete()
             event.post('sub_%s' % Submission.get_id_secret(packet['submission-id']), {'type': 'grading-begin'})
@@ -467,7 +476,7 @@ class JudgeHandler(ZlibPacketHandler):
                 user=submission.user_id,
                 problem=problem.code,
                 finish=True,
-            )
+            ),
         )
 
         if problem.is_public and not problem.is_organization_private:
@@ -510,7 +519,7 @@ class JudgeHandler(ZlibPacketHandler):
             )
             self._post_update_submission(packet['submission-id'], 'compile-error', done=True)
             json_log.info(
-                self._make_json_log(packet, action='compile-error', log=packet['log'], finish=True, result='CE')
+                self._make_json_log(packet, action='compile-error', log=packet['log'], finish=True, result='CE'),
             )
         else:
             logger.warning('Unknown submission: %s', packet['submission-id'])
@@ -522,7 +531,7 @@ class JudgeHandler(ZlibPacketHandler):
                     log=packet['log'],
                     finish=True,
                     result='CE',
-                )
+                ),
             )
 
     def on_compile_message(self, packet):
@@ -534,7 +543,7 @@ class JudgeHandler(ZlibPacketHandler):
         else:
             logger.warning('Unknown submission: %s', packet['submission-id'])
             json_log.error(
-                self._make_json_log(packet, action='compile-message', info='unknown submission', log=packet['log'])
+                self._make_json_log(packet, action='compile-message', info='unknown submission', log=packet['log']),
             )
 
     def on_internal_error(self, packet):
@@ -550,8 +559,12 @@ class JudgeHandler(ZlibPacketHandler):
             self._post_update_submission(id, 'internal-error', done=True)
             json_log.info(
                 self._make_json_log(
-                    packet, action='internal-error', message=packet['message'], finish=True, result='IE'
-                )
+                    packet,
+                    action='internal-error',
+                    message=packet['message'],
+                    finish=True,
+                    result='IE',
+                ),
             )
         else:
             logger.warning('Unknown submission: %s', id)
@@ -563,7 +576,7 @@ class JudgeHandler(ZlibPacketHandler):
                     message=packet['message'],
                     finish=True,
                     result='IE',
-                )
+                ),
             )
 
     def on_submission_terminated(self, packet):
@@ -577,7 +590,7 @@ class JudgeHandler(ZlibPacketHandler):
         else:
             logger.warning('Unknown submission: %s', packet['submission-id'])
             json_log.error(
-                self._make_json_log(packet, action='aborted', info='unknown submission', finish=True, result='AB')
+                self._make_json_log(packet, action='aborted', info='unknown submission', finish=True, result='AB'),
             )
 
     def on_batch_begin(self, packet):
@@ -654,7 +667,7 @@ class JudgeHandler(ZlibPacketHandler):
                     voluntary_context_switches=result.get('voluntary-context-switches', 0),
                     involuntary_context_switches=result.get('involuntary-context-switches', 0),
                     runtime_version=result.get('runtime-version', ''),
-                )
+                ),
             )
 
         do_post = True

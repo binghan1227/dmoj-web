@@ -105,7 +105,9 @@ class Contest(models.Model):
         related_name='tested_contests',
     )
     tester_see_scoreboard = models.BooleanField(
-        verbose_name=_('testers see scoreboard'), default=False, help_text=_('If testers can see the scoreboard.')
+        verbose_name=_('testers see scoreboard'),
+        default=False,
+        help_text=_('If testers can see the scoreboard.'),
     )
     tester_see_submissions = models.BooleanField(
         verbose_name=_('testers see submissions'),
@@ -130,11 +132,13 @@ class Contest(models.Model):
         help_text=_(
             'Should be set even for organization-private contests, where it '
             'determines whether the contest is visible to members of the '
-            'specified organizations.'
+            'specified organizations.',
         ),
     )
     is_rated = models.BooleanField(
-        verbose_name=_('contest rated'), help_text=_('Whether this contest can be rated.'), default=False
+        verbose_name=_('contest rated'),
+        help_text=_('Whether this contest can be rated.'),
+        default=False,
     )
     view_contest_scoreboard = models.ManyToManyField(
         Profile,
@@ -158,10 +162,15 @@ class Contest(models.Model):
         choices=SCOREBOARD_VISIBILITY,
     )
     use_clarifications = models.BooleanField(
-        verbose_name=_('no comments'), help_text=_('Use clarification system instead of comments.'), default=True
+        verbose_name=_('no comments'),
+        help_text=_('Use clarification system instead of comments.'),
+        default=True,
     )
     rating_floor = models.IntegerField(
-        verbose_name=_('rating floor'), help_text=_('Do not rate users who have a lower rating.'), null=True, blank=True
+        verbose_name=_('rating floor'),
+        help_text=_('Do not rate users who have a lower rating.'),
+        null=True,
+        blank=True,
     )
     rating_ceiling = models.IntegerField(
         verbose_name=_('rating ceiling'),
@@ -174,16 +183,21 @@ class Contest(models.Model):
         help_text=_(
             'Overrides the performance_ceiling parameter '
             'used in computing ratings. '
-            "Do not modify unless you know what you're doing!"
+            "Do not modify unless you know what you're doing!",
         ),
         null=True,
         blank=True,
     )
     rate_all = models.BooleanField(
-        verbose_name=_('rate all'), help_text=_('Rate users even if they make no submissions.'), default=False
+        verbose_name=_('rate all'),
+        help_text=_('Rate users even if they make no submissions.'),
+        default=False,
     )
     rate_exclude = models.ManyToManyField(
-        Profile, verbose_name=_('exclude from ratings'), blank=True, related_name='rate_exclude+'
+        Profile,
+        verbose_name=_('exclude from ratings'),
+        blank=True,
+        related_name='rate_exclude+',
     )
     is_private = models.BooleanField(verbose_name=_('private to specific users'), default=False)
     private_contestants = models.ManyToManyField(
@@ -208,7 +222,7 @@ class Contest(models.Model):
         help_text=_(
             'Whether judges should grade pretests only, versus all '
             'testcases. Commonly set during a contest, then unset '
-            'prior to rejudging user submissions when the contest ends.'
+            'prior to rejudging user submissions when the contest ends.',
         ),
         default=False,
     )
@@ -260,7 +274,7 @@ class Contest(models.Model):
         max_length=255,
         help_text=_(
             'An optional code to prompt contestants before they are allowed '
-            'to join the contest. Leave it blank to disable.'
+            'to join the contest. Leave it blank to disable.',
         ),
     )
     banned_users = models.ManyToManyField(
@@ -283,7 +297,7 @@ class Contest(models.Model):
         help_text=_(
             'A JSON object to serve as the configuration for the chosen contest format '
             'module. Leave empty to use None. Exact format depends on the contest format '
-            'selected.'
+            'selected.',
         ),
     )
     problem_label_script = models.TextField(
@@ -292,7 +306,7 @@ class Contest(models.Model):
         help_text=_(
             'A custom Lua function to generate problem labels. Requires a '
             'single function with an integer parameter, the zero-indexed '
-            'contest problem index, and returns a string, the label.'
+            'contest problem index, and returns a string, the label.',
         ),
     )
     locked_after = models.DateTimeField(
@@ -442,7 +456,7 @@ class Contest(models.Model):
     @cached_property
     def editor_ids(self):
         return self.author_ids.union(
-            Contest.curators.through.objects.filter(contest=self).values_list('profile_id', flat=True)
+            Contest.curators.through.objects.filter(contest=self).values_list('profile_id', flat=True),
         )
 
     @cached_property
@@ -599,7 +613,7 @@ class Contest(models.Model):
         queryset = cls.objects.defer('description')
         if not (user.has_perm('judge.see_private_contest') or user.has_perm('judge.edit_all_contest')):
             org_check = Q(organizations__in=user.profile.organizations.all()) | Q(
-                classes__in=user.profile.classes.all()
+                classes__in=user.profile.classes.all(),
             )
             q = Q(is_visible=True)
             q &= (
@@ -655,7 +669,9 @@ class ContestParticipation(models.Model):
     score = models.FloatField(verbose_name=_('score'), default=0, db_index=True)
     cumtime = models.PositiveIntegerField(verbose_name=_('cumulative time'), default=0)
     is_disqualified = models.BooleanField(
-        verbose_name=_('is disqualified'), default=False, help_text=_('Whether this participation is disqualified.')
+        verbose_name=_('is disqualified'),
+        default=False,
+        help_text=_('Whether this participation is disqualified.'),
     )
     tiebreaker = models.FloatField(verbose_name=_('tie-breaking field'), default=0.0)
     virtual = models.IntegerField(
@@ -760,7 +776,10 @@ class ContestProblem(models.Model):
     is_pretested = models.BooleanField(default=False, verbose_name=_('is pretested'))
     order = models.PositiveIntegerField(db_index=True, verbose_name=_('order'))
     output_prefix_override = models.IntegerField(
-        verbose_name=_('output prefix length override'), default=0, null=True, blank=True
+        verbose_name=_('output prefix length override'),
+        default=0,
+        null=True,
+        blank=True,
     )
     max_submissions = models.IntegerField(
         verbose_name=_('max submissions'),
@@ -780,7 +799,10 @@ class ContestProblem(models.Model):
 
 class ContestSubmission(models.Model):
     submission = models.OneToOneField(
-        Submission, verbose_name=_('submission'), related_name='contest', on_delete=CASCADE
+        Submission,
+        verbose_name=_('submission'),
+        related_name='contest',
+        on_delete=CASCADE,
     )
     problem = models.ForeignKey(
         ContestProblem,
@@ -798,7 +820,9 @@ class ContestSubmission(models.Model):
     )
     points = models.FloatField(default=0.0, verbose_name=_('points'))
     is_pretest = models.BooleanField(
-        verbose_name=_('is pretested'), help_text=_('Whether this submission was ran only on pretests.'), default=False
+        verbose_name=_('is pretested'),
+        help_text=_('Whether this submission was ran only on pretests.'),
+        default=False,
     )
 
     class Meta:
@@ -810,7 +834,10 @@ class Rating(models.Model):
     user = models.ForeignKey(Profile, verbose_name=_('user'), related_name='ratings', on_delete=CASCADE)
     contest = models.ForeignKey(Contest, verbose_name=_('contest'), related_name='ratings', on_delete=CASCADE)
     participation = models.OneToOneField(
-        ContestParticipation, verbose_name=_('participation'), related_name='rating', on_delete=CASCADE
+        ContestParticipation,
+        verbose_name=_('participation'),
+        related_name='rating',
+        on_delete=CASCADE,
     )
     rank = models.IntegerField(verbose_name=_('rank'))
     rating = models.IntegerField(verbose_name=_('rating'))

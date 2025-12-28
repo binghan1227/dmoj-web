@@ -37,7 +37,7 @@ class ContestSitemap(Sitemap):
 
     def items(self):
         return Contest.objects.filter(is_visible=True, is_private=False, is_organization_private=False).values_list(
-            'key'
+            'key',
         )
 
     def location(self, obj):
@@ -72,7 +72,9 @@ class SolutionSitemap(Sitemap):
 
     def items(self):
         return Solution.objects.filter(
-            is_public=True, publish_on__lte=timezone.now(), problem__in=Problem.get_public_problems()
+            is_public=True,
+            publish_on__lte=timezone.now(),
+            problem__in=Problem.get_public_problems(),
         ).values_list('problem__code')
 
     def location(self, obj):
@@ -112,7 +114,7 @@ sitemaps = {
     'pages': UrlSitemap(
         [
             {'location': '/about/', 'priority': 0.9},
-        ]
+        ],
     ),
     'problem': ProblemSitemap,
     'solutions': SolutionSitemap,

@@ -69,7 +69,8 @@ register_patterns = [
     path(
         'activate/complete/',
         TitledTemplateView.as_view(
-            template_name='registration/activation_complete.html', title=_('Activation Successful!')
+            template_name='registration/activation_complete.html',
+            title=_('Activation Successful!'),
         ),
         name='registration_activation_complete',
     ),
@@ -80,14 +81,16 @@ register_patterns = [
     path(
         'register/complete/',
         TitledTemplateView.as_view(
-            template_name='registration/registration_complete.html', title=_('Registration Completed')
+            template_name='registration/registration_complete.html',
+            title=_('Registration Completed'),
         ),
         name='registration_complete',
     ),
     path(
         'register/closed/',
         TitledTemplateView.as_view(
-            template_name='registration/registration_closed.html', title=_('Registration Not Allowed')
+            template_name='registration/registration_closed.html',
+            title=_('Registration Not Allowed'),
         ),
         name='registration_disallowed',
     ),
@@ -154,7 +157,7 @@ def paged_list_view(view, name):
         [
             path('', view.as_view(), name=name),
             path('<int:page>', view.as_view(), name=name),
-        ]
+        ],
     )
 
 
@@ -181,7 +184,8 @@ urlpatterns = [
                 path('/rank/', paged_list_view(ranked_submission.RankedSubmissions, 'ranked_submissions')),
                 path('/submissions/', paged_list_view(submission.ProblemSubmissions, 'chronological_submissions')),
                 path(
-                    '/submissions/<str:user>/', paged_list_view(submission.UserProblemSubmissions, 'user_submissions')
+                    '/submissions/<str:user>/',
+                    paged_list_view(submission.UserProblemSubmissions, 'user_submissions'),
                 ),
                 path('/', lambda _, problem: HttpResponsePermanentRedirect(reverse('problem_detail', args=[problem]))),
                 path('/test_data', ProblemDataView.as_view(), name='problem_data'),
@@ -228,10 +232,10 @@ urlpatterns = [
                                 problem_manage.rescore_success,
                                 name='problem_submissions_rescore_success',
                             ),
-                        ]
+                        ],
                     ),
                 ),
-            ]
+            ],
         ),
     ),
     path('submissions/', paged_list_view(submission.AllSubmissions, 'all_submissions')),
@@ -245,7 +249,7 @@ urlpatterns = [
                 path('', submission.SubmissionStatus.as_view(), name='submission_status'),
                 path('/abort', submission.abort_submission, name='submission_abort'),
                 path('/test_case/<int:case>/<str:type>', download_test_case, name='submission_test_case_download'),
-            ]
+            ],
         ),
     ),
     path(
@@ -258,7 +262,7 @@ urlpatterns = [
                     lambda request, page: HttpResponsePermanentRedirect('%s?page=%s' % (reverse('user_list'), page)),
                 ),
                 path('find', user.user_ranking_redirect, name='user_ranking_redirect'),
-            ]
+            ],
         ),
     ),
     path('user', user.UserAboutPage.as_view(), name='user_page'),
@@ -276,7 +280,7 @@ urlpatterns = [
                         [
                             path('', user.UserProblemsPage.as_view(), name='user_problems'),
                             path('/ajax', user.UserPerformancePointsAjax.as_view(), name='user_pp_ajax'),
-                        ]
+                        ],
                     ),
                 ),
                 path('/submissions/', paged_list_view(submission.AllUserSubmissions, 'all_user_submissions_old')),
@@ -285,7 +289,7 @@ urlpatterns = [
                     lambda _, user: HttpResponsePermanentRedirect(reverse('all_user_submissions', args=[user])),
                 ),
                 path('/', lambda _, user: HttpResponsePermanentRedirect(reverse('user_page', args=[user]))),
-            ]
+            ],
         ),
     ),
     path('comments/upvote/', comment.upvote_comment, name='comment_upvote'),
@@ -300,7 +304,7 @@ urlpatterns = [
                 path('edit/ajax', comment.CommentEditAjax.as_view(), name='comment_edit_ajax'),
                 path('votes/ajax', comment.CommentVotesAjax.as_view(), name='comment_votes_ajax'),
                 path('render', comment.CommentContent.as_view(), name='comment_content'),
-            ]
+            ],
         ),
     ),
     path('contests/', paged_list_view(contests.ContestList, 'contest_list')),
@@ -312,7 +316,7 @@ urlpatterns = [
             [
                 path('', contests.ContestTagDetail.as_view(), name='contest_tag'),
                 path('/ajax', contests.ContestTagDetailAjax.as_view(), name='contest_tag_ajax'),
-            ]
+            ],
         ),
     ),
     path(
@@ -352,7 +356,7 @@ urlpatterns = [
                     name='contest_participation_disqualify',
                 ),
                 path('/', lambda _, contest: HttpResponsePermanentRedirect(reverse('contest_view', args=[contest]))),
-            ]
+            ],
         ),
     ),
     path('organizations/', organization.OrganizationList.as_view(), name='organization_list'),
@@ -382,7 +386,9 @@ urlpatterns = [
                                 name='organization_requests_pending',
                             ),
                             path(
-                                'log', organization.OrganizationRequestLog.as_view(), name='organization_requests_log'
+                                'log',
+                                organization.OrganizationRequestLog.as_view(),
+                                name='organization_requests_log',
                             ),
                             path(
                                 'approved',
@@ -394,7 +400,7 @@ urlpatterns = [
                                 organization.OrganizationRequestLog.as_view(states=('R',), tab='rejected'),
                                 name='organization_requests_rejected',
                             ),
-                        ]
+                        ],
                     ),
                 ),
                 path(
@@ -403,14 +409,14 @@ urlpatterns = [
                         [
                             path('', organization.ClassHome.as_view(), name='class_home'),
                             path('/join', organization.RequestJoinClass.as_view(), name='class_join'),
-                        ]
+                        ],
                     ),
                 ),
                 path(
                     '/',
                     lambda _, pk, slug: HttpResponsePermanentRedirect(reverse('organization_home', args=[pk, slug])),
                 ),
-            ]
+            ],
         ),
     ),
     path('runtimes/', language.LanguageList.as_view(), name='runtime_list'),
@@ -423,7 +429,7 @@ urlpatterns = [
                 path('', ide.IDEView.as_view(), name='ide'),
                 path('submit', ide.IDESubmitView.as_view(), name='ide_submit'),
                 path('status/<int:submission>', ide.IDESubmissionStatus.as_view(), name='ide_submission_status'),
-            ]
+            ],
         ),
     ),
     path(
@@ -442,7 +448,7 @@ urlpatterns = [
                 path('participations', api.api_v2.APIContestParticipationList.as_view()),
                 path('languages', api.api_v2.APILanguageList.as_view()),
                 path('judges', api.api_v2.APIJudgeList.as_view()),
-            ]
+            ],
         ),
     ),
     path('blog/', paged_list_view(blog.PostList, 'blog_post_list')),
@@ -474,7 +480,7 @@ urlpatterns = [
                             ),
                             path('ticket_user', TicketUserSelect2View.as_view(), name='ticket_user_select2_ajax'),
                             path('ticket_assignee', AssigneeSelect2View.as_view(), name='ticket_assignee_select2_ajax'),
-                        ]
+                        ],
                     ),
                 ),
                 path(
@@ -496,7 +502,7 @@ urlpatterns = [
                             path('solution', preview.SolutionMarkdownPreviewView.as_view(), name='solution_preview'),
                             path('license', preview.LicenseMarkdownPreviewView.as_view(), name='license_preview'),
                             path('ticket', preview.TicketMarkdownPreviewView.as_view(), name='ticket_preview'),
-                        ]
+                        ],
                     ),
                 ),
                 path(
@@ -505,10 +511,10 @@ urlpatterns = [
                         [
                             path('upload-image', martor_image_uploader, name='martor_image_uploader'),
                             path('search-user', markdown_search_user, name='martor_search_user'),
-                        ]
+                        ],
                     ),
                 ),
-            ]
+            ],
         ),
     ),
     path(
@@ -521,7 +527,7 @@ urlpatterns = [
                 path('comment/atom/', AtomCommentFeed(), name='comment_atom'),
                 path('blog/rss/', BlogFeed(), name='blog_rss'),
                 path('blog/atom/', AtomBlogFeed(), name='blog_atom'),
-            ]
+            ],
         ),
     ),
     path(
@@ -537,10 +543,10 @@ urlpatterns = [
                             path('data/ac/', stats.ac_language_data, name='language_stats_data_ac'),
                             path('data/status/', stats.status_data, name='stats_data_status'),
                             path('data/ac_rate/', stats.ac_rate, name='language_stats_data_ac_rate'),
-                        ]
+                        ],
                     ),
                 ),
-            ]
+            ],
         ),
     ),
     path(
@@ -549,7 +555,7 @@ urlpatterns = [
             [
                 path('', ticket.TicketList.as_view(), name='ticket_list'),
                 path('ajax', ticket.TicketListDataAjax.as_view(), name='ticket_ajax'),
-            ]
+            ],
         ),
     ),
     path(
@@ -561,7 +567,7 @@ urlpatterns = [
                 path('/open', ticket.TicketStatusChangeView.as_view(open=True), name='ticket_open'),
                 path('/close', ticket.TicketStatusChangeView.as_view(open=False), name='ticket_close'),
                 path('/notes', ticket.TicketNotesEditView.as_view(), name='ticket_notes'),
-            ]
+            ],
         ),
     ),
     path('sitemap.xml', sitemap, {'sitemaps': sitemaps}),
@@ -575,7 +581,7 @@ urlpatterns = [
                 path('problem/', ProblemSelect2View.as_view(), name='problem_select2'),
                 path('contest/', ContestSelect2View.as_view(), name='contest_select2'),
                 path('comment/', CommentSelect2View.as_view(), name='comment_select2'),
-            ]
+            ],
         ),
     ),
     path(
@@ -587,7 +593,7 @@ urlpatterns = [
                 path('success', tasks.demo_success),
                 path('failure', tasks.demo_failure),
                 path('progress', tasks.demo_progress),
-            ]
+            ],
         ),
     ),
 ]
@@ -631,7 +637,7 @@ for favicon in favicon_paths:
             RedirectView.as_view(
                 url=static_lazy('icons/' + favicon),
             ),
-        )
+        ),
     )
 
 handler404 = 'judge.views.error.error404'

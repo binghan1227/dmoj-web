@@ -31,7 +31,7 @@ def contest_completed_ids(participation):
         result = set(
             participation.submissions.filter(submission__result='AC', points__gte=F('problem__points'))
             .values_list('problem__problem_id', flat=True)
-            .distinct()
+            .distinct(),
         )
         cache.set(key, result, 86400)
     return result
@@ -44,7 +44,7 @@ def user_completed_ids(profile):
         result = set(
             Submission.objects.filter(user=profile, result='AC', case_points__gte=F('case_total'))
             .values_list('problem_id', flat=True)
-            .distinct()
+            .distinct(),
         )
         cache.set(key, result, 86400)
     return result
@@ -108,7 +108,9 @@ def hot_problems(duration, limit):
     qs = cache.get(cache_key)
     if qs is None:
         qs = Problem.get_public_problems().filter(
-            submission__date__gt=timezone.now() - duration, points__gt=3, points__lt=25
+            submission__date__gt=timezone.now() - duration,
+            points__gt=3,
+            points__lt=25,
         )
         qs0 = qs.annotate(k=Count('submission__user', distinct=True)).order_by('-k').values_list('k', flat=True)
 
@@ -129,16 +131,16 @@ def hot_problems(duration, limit):
                     When(submission__result='TLE', then=1),
                     When(submission__result='OLE', then=1),
                     output_field=FloatField(),
-                )
-            )
+                ),
+            ),
         )
         qs = qs.annotate(
             ac_volume=Count(
                 Case(
                     When(submission__result='AC', then=1),
                     output_field=FloatField(),
-                )
-            )
+                ),
+            ),
         )
         qs = qs.filter(unique_user_count__gt=max(mx / 3.0, 1))
 
@@ -148,7 +150,7 @@ def hot_problems(duration, limit):
                     0.5 * F('points') * (0.4 * F('ac_volume') / F('submission_volume') + 0.6 * F('ac_rate'))
                     + 100 * e ** (F('unique_user_count') / mx),
                     output_field=FloatField(),
-                )
+                ),
             )
             .order_by('-ordering')
             .defer('description')[:limit]

@@ -139,8 +139,9 @@ class Migration(migrations.Migration):
                         max_length=30,
                         validators=[
                             django.core.validators.RegexValidator(
-                                '^[pcs]:[a-z0-9]+$|^b:\\d+$', 'Page code must be ^[pcs]:[a-z0-9]+$|^b:\\d+$'
-                            )
+                                '^[pcs]:[a-z0-9]+$|^b:\\d+$',
+                                'Page code must be ^[pcs]:[a-z0-9]+$|^b:\\d+$',
+                            ),
                         ],
                         verbose_name='associated page',
                     ),
@@ -169,8 +170,9 @@ class Migration(migrations.Migration):
                         max_length=30,
                         validators=[
                             django.core.validators.RegexValidator(
-                                '^[pcs]:[a-z0-9]+$|^b:\\d+$', 'Page code must be ^[pcs]:[a-z0-9]+$|^b:\\d+$'
-                            )
+                                '^[pcs]:[a-z0-9]+$|^b:\\d+$',
+                                'Page code must be ^[pcs]:[a-z0-9]+$|^b:\\d+$',
+                            ),
                         ],
                         verbose_name='associated page',
                     ),
@@ -188,7 +190,9 @@ class Migration(migrations.Migration):
                 (
                     'comment',
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE, related_name='votes', to='judge.Comment'
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name='votes',
+                        to='judge.Comment',
                     ),
                 ),
             ],
@@ -207,7 +211,7 @@ class Migration(migrations.Migration):
                         max_length=20,
                         unique=True,
                         validators=[
-                            django.core.validators.RegexValidator('^[a-z0-9]+$', 'Contest id must be ^[a-z0-9]+$')
+                            django.core.validators.RegexValidator('^[a-z0-9]+$', 'Contest id must be ^[a-z0-9]+$'),
                         ],
                         verbose_name='contest id',
                     ),
@@ -228,7 +232,9 @@ class Migration(migrations.Migration):
                 (
                     'is_rated',
                     models.BooleanField(
-                        default=False, help_text='Whether this contest can be rated.', verbose_name='contest rated'
+                        default=False,
+                        help_text='Whether this contest can be rated.',
+                        verbose_name='contest rated',
                     ),
                 ),
                 (
@@ -337,7 +343,9 @@ class Migration(migrations.Migration):
                 (
                     'real_start',
                     models.DateTimeField(
-                        db_column='start', default=django.utils.timezone.now, verbose_name='start time'
+                        db_column='start',
+                        default=django.utils.timezone.now,
+                        verbose_name='start time',
                     ),
                 ),
                 ('score', models.IntegerField(db_index=True, default=0, verbose_name='score')),
@@ -387,7 +395,7 @@ class Migration(migrations.Migration):
                         default=0,
                         help_text='Maximum number of submissions for this problem, or 0 for no limit.',
                         validators=[
-                            django.core.validators.MinValueValidator(0, "Why include a problem you can't submit to?")
+                            django.core.validators.MinValueValidator(0, "Why include a problem you can't submit to?"),
                         ],
                     ),
                 ),
@@ -456,8 +464,9 @@ class Migration(migrations.Migration):
                         unique=True,
                         validators=[
                             django.core.validators.RegexValidator(
-                                '^[a-z-]+$', message='Lowercase letters and hyphens only.'
-                            )
+                                '^[a-z-]+$',
+                                message='Lowercase letters and hyphens only.',
+                            ),
                         ],
                         verbose_name='tag name',
                     ),
@@ -467,7 +476,7 @@ class Migration(migrations.Migration):
                     models.CharField(
                         max_length=7,
                         validators=[
-                            django.core.validators.RegexValidator('^#(?:[A-Fa-f0-9]{3}){1,2}$', 'Invalid colour.')
+                            django.core.validators.RegexValidator('^#(?:[A-Fa-f0-9]{3}){1,2}$', 'Invalid colour.'),
                         ],
                         verbose_name='tag colour',
                     ),
@@ -488,7 +497,9 @@ class Migration(migrations.Migration):
                 (
                     'auth_key',
                     models.CharField(
-                        help_text='A key to authenticated this judge', max_length=100, verbose_name='authentication key'
+                        help_text='A key to authenticated this judge',
+                        max_length=100,
+                        verbose_name='authentication key',
                     ),
                 ),
                 (
@@ -623,7 +634,9 @@ class Migration(migrations.Migration):
                 (
                     'language',
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE, to='judge.Language', verbose_name='language'
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to='judge.Language',
+                        verbose_name='language',
                     ),
                 ),
             ],
@@ -642,7 +655,7 @@ class Migration(migrations.Migration):
                         max_length=20,
                         unique=True,
                         validators=[
-                            django.core.validators.RegexValidator('^[-\\w.]+$', 'License key must be ^[-\\w.]+$')
+                            django.core.validators.RegexValidator('^[-\\w.]+$', 'License key must be ^[-\\w.]+$'),
                         ],
                         verbose_name='key',
                     ),
@@ -692,7 +705,8 @@ class Migration(migrations.Migration):
                 (
                     'regex',
                     models.TextField(
-                        validators=[judge.models.interface.validate_regex], verbose_name='highlight regex'
+                        validators=[judge.models.interface.validate_regex],
+                        verbose_name='highlight regex',
                     ),
                 ),
                 ('lft', models.PositiveIntegerField(db_index=True, editable=False)),
@@ -724,13 +738,17 @@ class Migration(migrations.Migration):
                 (
                     'slug',
                     models.SlugField(
-                        help_text='Organization name shown in URL', max_length=128, verbose_name='organization slug'
+                        help_text='Organization name shown in URL',
+                        max_length=128,
+                        verbose_name='organization slug',
                     ),
                 ),
                 (
                     'short_name',
                     models.CharField(
-                        help_text='Displayed beside user name during contests', max_length=20, verbose_name='short name'
+                        help_text='Displayed beside user name during contests',
+                        max_length=20,
+                        verbose_name='short name',
                     ),
                 ),
                 ('about', models.TextField(verbose_name='organization description')),
@@ -738,7 +756,9 @@ class Migration(migrations.Migration):
                 (
                     'is_open',
                     models.BooleanField(
-                        default=True, help_text='Allow joining organization', verbose_name='is open organization?'
+                        default=True,
+                        help_text='Allow joining organization',
+                        verbose_name='is open organization?',
                     ),
                 ),
                 (
@@ -753,7 +773,11 @@ class Migration(migrations.Migration):
                 (
                     'access_code',
                     models.CharField(
-                        blank=True, help_text='Student access code', max_length=7, null=True, verbose_name='access code'
+                        blank=True,
+                        help_text='Student access code',
+                        max_length=7,
+                        null=True,
+                        verbose_name='access code',
                     ),
                 ),
             ],
@@ -823,7 +847,7 @@ class Migration(migrations.Migration):
                         max_length=20,
                         unique=True,
                         validators=[
-                            django.core.validators.RegexValidator('^[a-z0-9]+$', 'Problem code must be ^[a-z0-9]+$')
+                            django.core.validators.RegexValidator('^[a-z0-9]+$', 'Problem code must be ^[a-z0-9]+$'),
                         ],
                         verbose_name='problem code',
                     ),
@@ -970,7 +994,9 @@ class Migration(migrations.Migration):
                 (
                     'checker_args',
                     models.TextField(
-                        blank=True, help_text='checker arguments as a JSON object', verbose_name='checker arguments'
+                        blank=True,
+                        help_text='checker arguments as a JSON object',
+                        verbose_name='checker arguments',
                     ),
                 ),
                 (
@@ -1039,7 +1065,9 @@ class Migration(migrations.Migration):
                 (
                     'checker_args',
                     models.TextField(
-                        blank=True, help_text='checker arguments as a JSON object', verbose_name='checker arguments'
+                        blank=True,
+                        help_text='checker arguments as a JSON object',
+                        verbose_name='checker arguments',
                     ),
                 ),
                 (
@@ -1825,7 +1853,9 @@ class Migration(migrations.Migration):
                 (
                     'is_unlisted',
                     models.BooleanField(
-                        default=False, help_text='User will not be ranked.', verbose_name='unlisted user'
+                        default=False,
+                        help_text='User will not be ranked.',
+                        verbose_name='unlisted user',
                     ),
                 ),
                 ('rating', models.IntegerField(default=None, null=True)),
@@ -1872,8 +1902,9 @@ class Migration(migrations.Migration):
                         null=True,
                         validators=[
                             django.core.validators.RegexValidator(
-                                '^$|^[A-Z2-7]{32}$', 'TOTP key must be empty or base32'
-                            )
+                                '^$|^[A-Z2-7]{32}$',
+                                'TOTP key must be empty or base32',
+                            ),
                         ],
                         verbose_name='TOTP key',
                     ),
@@ -2183,7 +2214,9 @@ class Migration(migrations.Migration):
                 (
                     'assignees',
                     models.ManyToManyField(
-                        related_name='assigned_tickets', to='judge.Profile', verbose_name='assignees'
+                        related_name='assigned_tickets',
+                        to='judge.Profile',
+                        verbose_name='assignees',
                     ),
                 ),
                 (
@@ -2236,7 +2269,10 @@ class Migration(migrations.Migration):
             model_name='problem',
             name='authors',
             field=models.ManyToManyField(
-                blank=True, related_name='authored_problems', to='judge.Profile', verbose_name='creators'
+                blank=True,
+                related_name='authored_problems',
+                to='judge.Profile',
+                verbose_name='creators',
             ),
         ),
         migrations.AddField(
@@ -2264,14 +2300,19 @@ class Migration(migrations.Migration):
             model_name='problem',
             name='group',
             field=models.ForeignKey(
-                on_delete=django.db.models.deletion.CASCADE, to='judge.ProblemGroup', verbose_name='problem group'
+                on_delete=django.db.models.deletion.CASCADE,
+                to='judge.ProblemGroup',
+                verbose_name='problem group',
             ),
         ),
         migrations.AddField(
             model_name='problem',
             name='license',
             field=models.ForeignKey(
-                blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='judge.License'
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to='judge.License',
             ),
         ),
         migrations.AddField(
@@ -2449,21 +2490,28 @@ class Migration(migrations.Migration):
             model_name='contest',
             name='tags',
             field=models.ManyToManyField(
-                blank=True, related_name='contests', to='judge.ContestTag', verbose_name='contest tags'
+                blank=True,
+                related_name='contests',
+                to='judge.ContestTag',
+                verbose_name='contest tags',
             ),
         ),
         migrations.AddField(
             model_name='commentvote',
             name='voter',
             field=models.ForeignKey(
-                on_delete=django.db.models.deletion.CASCADE, related_name='voted_comments', to='judge.Profile'
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name='voted_comments',
+                to='judge.Profile',
             ),
         ),
         migrations.AddField(
             model_name='comment',
             name='author',
             field=models.ForeignKey(
-                on_delete=django.db.models.deletion.CASCADE, to='judge.Profile', verbose_name='commenter'
+                on_delete=django.db.models.deletion.CASCADE,
+                to='judge.Profile',
+                verbose_name='commenter',
             ),
         ),
         migrations.AddField(

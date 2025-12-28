@@ -145,7 +145,7 @@ class SubmissionDetailBase(LoginRequiredMixin, TitleMixin, SubmissionMixin, Deta
                     reverse('user_page', args=[submission.user.user.username]),
                     submission.user.display_name,
                 ),
-            }
+            },
         )
 
 
@@ -330,7 +330,7 @@ class SubmissionsListBase(DiggPaginatorMixin, TitleMixin, ListView):
                     'problem__translations',
                     queryset=ProblemTranslation.objects.filter(language=self.request.LANGUAGE_CODE),
                     to_attr='_trans',
-                )
+                ),
             )
         if self.in_contest:
             queryset = queryset.filter(contest_object=self.contest)
@@ -368,7 +368,9 @@ class SubmissionsListBase(DiggPaginatorMixin, TitleMixin, ListView):
             # Otherwise, with multiple language filters, MariaDB refuses to use an index
             # (or runs the subquery for every submission, which is even more horrifying to think about).
             queryset = queryset.filter(
-                language__in=list(Language.objects.filter(key__in=self.selected_languages).values_list('id', flat=True))
+                language__in=list(
+                    Language.objects.filter(key__in=self.selected_languages).values_list('id', flat=True)
+                ),
             )
         if self.selected_statuses:
             queryset = queryset.filter(result__in=self.selected_statuses)
@@ -476,9 +478,11 @@ class AllUserSubmissions(ConditionalUserTabMixin, UserMixin, SubmissionsListBase
             escape(_('All submissions by %s'))
             % (
                 format_html(
-                    '<a href="{1}">{0}</a>', self.profile.display_name, reverse('user_page', args=[self.username])
+                    '<a href="{1}">{0}</a>',
+                    self.profile.display_name,
+                    reverse('user_page', args=[self.username]),
                 ),
-            )
+            ),
         )
 
     def get_my_submissions_page(self):
@@ -511,9 +515,11 @@ class ProblemSubmissionsBase(SubmissionsListBase):
             escape(_('All submissions for %s'))
             % (
                 format_html(
-                    '<a href="{1}">{0}</a>', self.problem_name, reverse('problem_detail', args=[self.problem.code])
+                    '<a href="{1}">{0}</a>',
+                    self.problem_name,
+                    reverse('problem_detail', args=[self.problem.code]),
                 ),
-            )
+            ),
         )
 
     def access_check_contest(self, request):
@@ -555,7 +561,8 @@ class ProblemSubmissions(ProblemSubmissionsBase):
     def get_my_submissions_page(self):
         if self.request.user.is_authenticated:
             return reverse(
-                'user_submissions', kwargs={'problem': self.problem.code, 'user': self.request.user.username}
+                'user_submissions',
+                kwargs={'problem': self.problem.code, 'user': self.request.user.username},
             )
 
 
@@ -585,20 +592,26 @@ class UserProblemSubmissions(ConditionalUserTabMixin, UserMixin, ProblemSubmissi
                 escape(_('My submissions for %(problem)s'))
                 % {
                     'problem': format_html(
-                        '<a href="{1}">{0}</a>', self.problem_name, reverse('problem_detail', args=[self.problem.code])
+                        '<a href="{1}">{0}</a>',
+                        self.problem_name,
+                        reverse('problem_detail', args=[self.problem.code]),
                     ),
-                }
+                },
             )
         return mark_safe(
             escape(_("%(user)s's submissions for %(problem)s"))
             % {
                 'user': format_html(
-                    '<a href="{1}">{0}</a>', self.profile.display_name, reverse('user_page', args=[self.username])
+                    '<a href="{1}">{0}</a>',
+                    self.profile.display_name,
+                    reverse('user_page', args=[self.username]),
                 ),
                 'problem': format_html(
-                    '<a href="{1}">{0}</a>', self.problem_name, reverse('problem_detail', args=[self.problem.code])
+                    '<a href="{1}">{0}</a>',
+                    self.problem_name,
+                    reverse('problem_detail', args=[self.problem.code]),
                 ),
-            }
+            },
         )
 
     def get_context_data(self, **kwargs):
@@ -717,20 +730,26 @@ class UserAllContestSubmissions(ForceContestMixin, AllUserSubmissions):
                 escape(_('My submissions in %(contest)s'))
                 % {
                     'contest': format_html(
-                        '<a href="{1}">{0}</a>', self.contest.name, reverse('contest_view', args=[self.contest.key])
+                        '<a href="{1}">{0}</a>',
+                        self.contest.name,
+                        reverse('contest_view', args=[self.contest.key]),
                     ),
-                }
+                },
             )
         return mark_safe(
             escape(_("%(user)s's submissions in %(contest)s"))
             % {
                 'user': format_html(
-                    '<a href="{1}">{0}</a>', self.profile.display_name, reverse('user_page', args=[self.username])
+                    '<a href="{1}">{0}</a>',
+                    self.profile.display_name,
+                    reverse('user_page', args=[self.username]),
                 ),
                 'contest': format_html(
-                    '<a href="{1}">{0}</a>', self.contest.name, reverse('contest_view', args=[self.contest.key])
+                    '<a href="{1}">{0}</a>',
+                    self.contest.name,
+                    reverse('contest_view', args=[self.contest.key]),
                 ),
-            }
+            },
         )
 
     def get_queryset(self):
@@ -765,24 +784,34 @@ class UserContestSubmissions(ForceContestMixin, UserProblemSubmissions):
             return mark_safe(
                 escape(_("{user}'s submissions for {problem} in {contest}")).format(
                     user=format_html(
-                        '<a href="{1}">{0}</a>', self.profile.display_name, reverse('user_page', args=[self.username])
+                        '<a href="{1}">{0}</a>',
+                        self.profile.display_name,
+                        reverse('user_page', args=[self.username]),
                     ),
                     problem=format_html(
-                        '<a href="{1}">{0}</a>', self.problem_name, reverse('problem_detail', args=[self.problem.code])
+                        '<a href="{1}">{0}</a>',
+                        self.problem_name,
+                        reverse('problem_detail', args=[self.problem.code]),
                     ),
                     contest=format_html(
-                        '<a href="{1}">{0}</a>', self.contest.name, reverse('contest_view', args=[self.contest.key])
+                        '<a href="{1}">{0}</a>',
+                        self.contest.name,
+                        reverse('contest_view', args=[self.contest.key]),
                     ),
-                )
+                ),
             )
         return mark_safe(
             escape(_("{user}'s submissions for problem {number} in {contest}")).format(
                 user=format_html(
-                    '<a href="{1}">{0}</a>', self.profile.display_name, reverse('user_page', args=[self.username])
+                    '<a href="{1}">{0}</a>',
+                    self.profile.display_name,
+                    reverse('user_page', args=[self.username]),
                 ),
                 number=self.get_problem_number(self.problem),
                 contest=format_html(
-                    '<a href="{1}">{0}</a>', self.contest.name, reverse('contest_view', args=[self.contest.key])
+                    '<a href="{1}">{0}</a>',
+                    self.contest.name,
+                    reverse('contest_view', args=[self.contest.key]),
                 ),
-            )
+            ),
         )

@@ -36,7 +36,10 @@ CHECKERS = (
 
 class ProblemData(models.Model):
     problem = models.OneToOneField(
-        'Problem', verbose_name=_('problem'), related_name='data_files', on_delete=models.CASCADE
+        'Problem',
+        verbose_name=_('problem'),
+        related_name='data_files',
+        on_delete=models.CASCADE,
     )
     zipfile = models.FileField(
         verbose_name=_('data zip file'),
@@ -59,7 +62,9 @@ class ProblemData(models.Model):
     unicode = models.BooleanField(verbose_name=_('enable unicode'), null=True, blank=True)
     nobigmath = models.BooleanField(verbose_name=_('disable bigInteger / bigDecimal'), null=True, blank=True)
     checker_args = models.TextField(
-        verbose_name=_('checker arguments'), blank=True, help_text=_('Checker arguments as a JSON object.')
+        verbose_name=_('checker arguments'),
+        blank=True,
+        help_text=_('Checker arguments as a JSON object.'),
     )
 
     __original_zipfile = None
@@ -93,7 +98,10 @@ class ProblemData(models.Model):
 
 class ProblemTestCase(models.Model):
     dataset = models.ForeignKey(
-        'Problem', verbose_name=_('problem data set'), related_name='cases', on_delete=models.CASCADE
+        'Problem',
+        verbose_name=_('problem data set'),
+        related_name='cases',
+        on_delete=models.CASCADE,
     )
     order = models.IntegerField(verbose_name=_('case position'))
     type = models.CharField(
@@ -111,7 +119,9 @@ class ProblemTestCase(models.Model):
     output_limit = models.IntegerField(verbose_name=_('output limit length'), blank=True, null=True)
     checker = models.CharField(max_length=10, verbose_name=_('checker'), choices=CHECKERS, blank=True)
     checker_args = models.TextField(
-        verbose_name=_('checker arguments'), blank=True, help_text=_('checker arguments as a JSON object')
+        verbose_name=_('checker arguments'),
+        blank=True,
+        help_text=_('checker arguments as a JSON object'),
     )
     batch_dependencies = models.TextField(
         verbose_name=_('batch dependencies'),

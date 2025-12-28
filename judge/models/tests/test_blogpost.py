@@ -20,7 +20,7 @@ class BlogPostTestCase(CommonDataMixin, TestCase):
                     is_staff=True,
                     user_permissions=('change_blogpost', 'edit_all_post'),
                 ),
-            }
+            },
         )
 
         self.basic_blogpost = create_blogpost(

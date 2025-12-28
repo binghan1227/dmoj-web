@@ -83,7 +83,7 @@ def get_pp_breakdown(user, start=0, end=settings.DMOJ_PP_ENTRIES):
                 sub_long_status=long_status,
                 sub_result_class=result_class,
                 sub_lang=lang_short_display_name,
-            )
+            ),
         )
     has_more = end < min(len(PP_WEIGHT_TABLE), start + len(data))
     return breakdown, has_more

@@ -192,7 +192,11 @@ def markdown(value, style, math_engine=None, lazy_load=False, strip_paragraphs=F
         post_processors.append(lazy_load_processor)
 
     renderer = AwesomeRenderer(
-        escape=escape, nofollow=nofollow, texoid=texoid, math=math and math_engine is not None, math_engine=math_engine
+        escape=escape,
+        nofollow=nofollow,
+        texoid=texoid,
+        math=math and math_engine is not None,
+        math_engine=math_engine,
     )
     markdown = mistune.Markdown(renderer=renderer, inline=AwesomeInlineLexer, parse_block_html=1, parse_inline_html=1)
     result = markdown(value)

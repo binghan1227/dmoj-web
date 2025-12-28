@@ -34,7 +34,7 @@ class Language(models.Model):
         help_text=_(
             'More readable, but short, name to display publicly; e.g. "PY2" or '
             '"C++11". If left blank, it will default to the '
-            'short identifier.'
+            'short identifier.',
         ),
         null=True,
         blank=True,
@@ -43,7 +43,7 @@ class Language(models.Model):
         max_length=10,
         verbose_name=_('common name'),
         help_text=_(
-            'Common name for the language. For example, the common name for C++03, C++11, and C++14 would be "C++".'
+            'Common name for the language. For example, the common name for C++03, C++11, and C++14 would be "C++".',
         ),
     )
     ace = models.CharField(
@@ -51,7 +51,7 @@ class Language(models.Model):
         verbose_name=_('ace mode name'),
         help_text=_(
             'Language ID for Ace.js editor highlighting, appended to "mode-" to determine '
-            'the Ace JavaScript file to use, e.g., "python".'
+            'the Ace JavaScript file to use, e.g., "python".',
         ),
     )
     pygments = models.CharField(
@@ -60,7 +60,9 @@ class Language(models.Model):
         help_text=_('Language ID for Pygments highlighting in source windows.'),
     )
     template = models.TextField(
-        verbose_name=_('code template'), help_text=_('Code template to display in submission editor.'), blank=True
+        verbose_name=_('code template'),
+        help_text=_('Code template to display in submission editor.'),
+        blank=True,
     )
     info = models.CharField(
         max_length=50,
@@ -68,7 +70,7 @@ class Language(models.Model):
         blank=True,
         help_text=_(
             "Do not set this unless you know what you're doing! It will override the "
-            'usually more specific, judge-provided runtime info!'
+            'usually more specific, judge-provided runtime info!',
         ),
     )
     description = models.TextField(
@@ -77,7 +79,9 @@ class Language(models.Model):
         blank=True,
     )
     extension = models.CharField(
-        max_length=10, verbose_name=_('extension'), help_text=_('The extension of source files, e.g., "py" or "cpp".')
+        max_length=10,
+        verbose_name=_('extension'),
+        help_text=_('The extension of source files, e.g., "py" or "cpp".'),
     )
 
     def runtime_versions(self):
@@ -157,11 +161,16 @@ class RuntimeVersion(models.Model):
 
 class Judge(models.Model):
     name = models.CharField(
-        max_length=50, verbose_name=_('judge name'), help_text=_('Server name, hostname-style.'), unique=True
+        max_length=50,
+        verbose_name=_('judge name'),
+        help_text=_('Server name, hostname-style.'),
+        unique=True,
     )
     created = models.DateTimeField(auto_now_add=True, verbose_name=_('time of creation'))
     auth_key = models.CharField(
-        max_length=100, help_text=_('A key to authenticate this judge.'), verbose_name=_('authentication key')
+        max_length=100,
+        help_text=_('A key to authenticate this judge.'),
+        verbose_name=_('authentication key'),
     )
     is_blocked = models.BooleanField(
         verbose_name=_('block judge'),
@@ -178,7 +187,7 @@ class Judge(models.Model):
         default=1,
         help_text=_(
             'The tier of this judge. Only online judges of the minimum tier '
-            'will be used. This is used for high-availability.'
+            'will be used. This is used for high-availability.',
         ),
     )
     online = models.BooleanField(verbose_name=_('judge online status'), default=False)

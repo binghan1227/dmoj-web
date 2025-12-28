@@ -21,7 +21,9 @@ class ProfileForm(ModelForm):
         if 'current_contest' in self.base_fields:
             # form.fields['current_contest'] does not exist when the user has only view permission on the model.
             self.fields['current_contest'].queryset = self.instance.contest_history.select_related('contest').only(
-                'contest__name', 'user_id', 'virtual'
+                'contest__name',
+                'user_id',
+                'virtual',
             )
             self.fields['current_contest'].label_from_instance = (
                 lambda obj: '%s v%d' % (obj.contest.name, obj.virtual) if obj.virtual else obj.contest.name
@@ -132,7 +134,9 @@ class ProfileAdmin(NoBatchDeleteMixin, VersionAdmin):
     @admin.display(description='')
     def show_public(self, obj):
         return format_html(
-            '<a href="{0}" style="white-space:nowrap;">{1}</a>', obj.get_absolute_url(), gettext('View on site')
+            '<a href="{0}" style="white-space:nowrap;">{1}</a>',
+            obj.get_absolute_url(),
+            gettext('View on site'),
         )
 
     @admin.display(description=_('user'), ordering='user__username')
@@ -158,7 +162,8 @@ class ProfileAdmin(NoBatchDeleteMixin, VersionAdmin):
             profile.calculate_points()
             count += 1
         self.message_user(
-            request, ngettext('%d user had scores recalculated.', '%d users had scores recalculated.', count) % count
+            request,
+            ngettext('%d user had scores recalculated.', '%d users had scores recalculated.', count) % count,
         )
 
     def get_form(self, request, obj=None, **kwargs):

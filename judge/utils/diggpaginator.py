@@ -217,7 +217,7 @@ class DiggPaginator(ExPaginator):
                     math.floor(number - body / 2.0) + 1,  # +1 = shift odd body to right
                     math.floor(number + body / 2.0),
                 ],
-            )
+            ),
         )
         # adjust bounds
         if main_range[0] < 1:
@@ -274,7 +274,8 @@ class DiggPaginator(ExPaginator):
         page.leading_range = leading
         page.trailing_range = trailing
         page.page_range = reduce(
-            lambda x, y: x + ((x and y) and [False]) + y, [page.leading_range, page.main_range, page.trailing_range]
+            lambda x, y: x + ((x and y) and [False]) + y,
+            [page.leading_range, page.main_range, page.trailing_range],
         )
 
         page.__class__ = DiggPage
@@ -291,7 +292,7 @@ class DiggPage(Page):
                     ' '.join(map(str, self.main_range)),
                     ' '.join(map(str, self.trailing_range)),
                 ],
-            )
+            ),
         )
 
     @property

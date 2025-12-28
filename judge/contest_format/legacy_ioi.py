@@ -53,8 +53,8 @@ class LegacyIOIContestFormat(DefaultContestFormat):
                 points=Subquery(
                     participation.submissions.filter(problem_id=OuterRef('problem_id'))
                     .order_by('-points')
-                    .values('points')[:1]
-                )
+                    .values('points')[:1],
+                ),
             )
             .annotate(time=Min('submission__date'))
             .values_list('problem_id', 'time', 'points')
@@ -110,7 +110,7 @@ class LegacyIOIContestFormat(DefaultContestFormat):
         if self.config['cumtime']:
             yield _(
                 'Ties will be broken by the sum of the last score altering submission time on problems with a '
-                'non-zero score.'
+                'non-zero score.',
             )
         else:
             yield _('Ties by score will **not** be broken.')

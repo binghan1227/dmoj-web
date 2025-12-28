@@ -45,7 +45,9 @@ def django_uploader(image):
     name = str(uuid.uuid4()) + ext
     default_storage.save(os.path.join(settings.MARTOR_UPLOAD_MEDIA_DIR, name), image)
     url_base = getattr(
-        settings, 'MARTOR_UPLOAD_URL_PREFIX', urljoin(settings.MEDIA_URL, settings.MARTOR_UPLOAD_MEDIA_DIR)
+        settings,
+        'MARTOR_UPLOAD_URL_PREFIX',
+        urljoin(settings.MEDIA_URL, settings.MARTOR_UPLOAD_MEDIA_DIR),
     )
     if not url_base.endswith('/'):
         url_base += '/'

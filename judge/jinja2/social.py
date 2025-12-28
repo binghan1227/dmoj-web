@@ -36,5 +36,5 @@ def recaptcha_init(language=None):
     from snowpenguin.django.recaptcha2.templatetags.recaptcha2 import recaptcha_common_init
 
     return get_template('snowpenguin/recaptcha/recaptcha_init.html').render(
-        recaptcha_common_init(language, {'explicit': False})
+        recaptcha_common_init(language, {'explicit': False}),
     )

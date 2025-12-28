@@ -14,7 +14,9 @@ class Migration(migrations.Migration):
             model_name='contest',
             name='tester_see_scoreboard',
             field=models.BooleanField(
-                default=False, help_text='If testers can see the scoreboard.', verbose_name='testers see scoreboard'
+                default=False,
+                help_text='If testers can see the scoreboard.',
+                verbose_name='testers see scoreboard',
             ),
         ),
     ]

@@ -36,14 +36,20 @@ class Migration(migrations.Migration):
             model_name='submission',
             name='problem',
             field=models.ForeignKey(
-                db_index=False, on_delete=django.db.models.deletion.CASCADE, to='judge.problem', verbose_name='problem'
+                db_index=False,
+                on_delete=django.db.models.deletion.CASCADE,
+                to='judge.problem',
+                verbose_name='problem',
             ),
         ),
         migrations.AlterField(
             model_name='submission',
             name='user',
             field=models.ForeignKey(
-                db_index=False, on_delete=django.db.models.deletion.CASCADE, to='judge.profile', verbose_name='user'
+                db_index=False,
+                on_delete=django.db.models.deletion.CASCADE,
+                to='judge.profile',
+                verbose_name='user',
             ),
         ),
         migrations.AlterField(

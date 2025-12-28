@@ -99,7 +99,7 @@ class ProfileForm(ModelForm):
                     'You may not be part of more than {count} public organization.',
                     'You may not be part of more than {count} public organizations.',
                     max_orgs,
-                ).format(count=max_orgs)
+                ).format(count=max_orgs),
             )
 
         return self.cleaned_data
@@ -207,7 +207,9 @@ class CustomAuthenticationForm(AuthenticationForm):
 
     def _has_social_auth(self, key):
         return getattr(settings, 'SOCIAL_AUTH_%s_KEY' % key, None) and getattr(
-            settings, 'SOCIAL_AUTH_%s_SECRET' % key, None
+            settings,
+            'SOCIAL_AUTH_%s_SECRET' % key,
+            None,
         )
 
 

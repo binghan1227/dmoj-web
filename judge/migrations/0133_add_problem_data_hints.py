@@ -60,7 +60,11 @@ class Migration(migrations.Migration):
             model_name='class',
             name='access_code',
             field=models.CharField(
-                blank=True, help_text='Student access code.', max_length=7, null=True, verbose_name='access code'
+                blank=True,
+                help_text='Student access code.',
+                max_length=7,
+                null=True,
+                verbose_name='access code',
             ),
         ),
         migrations.AlterField(
@@ -269,7 +273,7 @@ class Migration(migrations.Migration):
                 help_text='Maximum number of submissions for this problem, or leave blank for no limit.',
                 null=True,
                 validators=[
-                    judge.models.contest.MinValueOrNoneValidator(1, "Why include a problem you can't submit to?")
+                    judge.models.contest.MinValueOrNoneValidator(1, "Why include a problem you can't submit to?"),
                 ],
                 verbose_name='max submissions',
             ),
@@ -278,7 +282,9 @@ class Migration(migrations.Migration):
             model_name='judge',
             name='auth_key',
             field=models.CharField(
-                help_text='A key to authenticate this judge.', max_length=100, verbose_name='authentication key'
+                help_text='A key to authenticate this judge.',
+                max_length=100,
+                verbose_name='authentication key',
             ),
         ),
         migrations.AlterField(
@@ -290,7 +296,10 @@ class Migration(migrations.Migration):
             model_name='judge',
             name='name',
             field=models.CharField(
-                help_text='Server name, hostname-style.', max_length=50, unique=True, verbose_name='judge name'
+                help_text='Server name, hostname-style.',
+                max_length=50,
+                unique=True,
+                verbose_name='judge name',
             ),
         ),
         migrations.AlterField(
@@ -374,7 +383,11 @@ class Migration(migrations.Migration):
             model_name='organization',
             name='access_code',
             field=models.CharField(
-                blank=True, help_text='Student access code.', max_length=7, null=True, verbose_name='access code'
+                blank=True,
+                help_text='Student access code.',
+                max_length=7,
+                null=True,
+                verbose_name='access code',
             ),
         ),
         migrations.AlterField(
@@ -400,7 +413,9 @@ class Migration(migrations.Migration):
             model_name='organization',
             name='is_open',
             field=models.BooleanField(
-                default=True, help_text='Allow joining organization.', verbose_name='is open organization?'
+                default=True,
+                help_text='Allow joining organization.',
+                verbose_name='is open organization?',
             ),
         ),
         migrations.AlterField(
@@ -418,7 +433,9 @@ class Migration(migrations.Migration):
             model_name='organization',
             name='short_name',
             field=models.CharField(
-                help_text='Displayed beside user name during contests.', max_length=20, verbose_name='short name'
+                help_text='Displayed beside user name during contests.',
+                max_length=20,
+                verbose_name='short name',
             ),
         ),
         migrations.AlterField(
@@ -435,14 +452,18 @@ class Migration(migrations.Migration):
             model_name='organization',
             name='slug',
             field=models.SlugField(
-                help_text='Organization name shown in URLs.', max_length=128, verbose_name='organization slug'
+                help_text='Organization name shown in URLs.',
+                max_length=128,
+                verbose_name='organization slug',
             ),
         ),
         migrations.AlterField(
             model_name='problem',
             name='allowed_languages',
             field=models.ManyToManyField(
-                help_text='List of allowed submission languages.', to='judge.Language', verbose_name='allowed languages'
+                help_text='List of allowed submission languages.',
+                to='judge.Language',
+                verbose_name='allowed languages',
             ),
         ),
         migrations.AlterField(
@@ -493,7 +514,8 @@ class Migration(migrations.Migration):
             model_name='problem',
             name='description',
             field=models.TextField(
-                validators=[judge.models.problem.disallowed_characters_validator], verbose_name='problem body'
+                validators=[judge.models.problem.disallowed_characters_validator],
+                verbose_name='problem body',
             ),
         ),
         migrations.AlterField(
@@ -597,28 +619,34 @@ class Migration(migrations.Migration):
             model_name='problemclarification',
             name='description',
             field=models.TextField(
-                validators=[judge.models.problem.disallowed_characters_validator], verbose_name='clarification body'
+                validators=[judge.models.problem.disallowed_characters_validator],
+                verbose_name='clarification body',
             ),
         ),
         migrations.AlterField(
             model_name='problemdata',
             name='checker_args',
             field=models.TextField(
-                blank=True, help_text='Checker arguments as a JSON object.', verbose_name='checker arguments'
+                blank=True,
+                help_text='Checker arguments as a JSON object.',
+                verbose_name='checker arguments',
             ),
         ),
         migrations.AlterField(
             model_name='problemtestcase',
             name='checker_args',
             field=models.TextField(
-                blank=True, help_text='Checker arguments as a JSON object.', verbose_name='checker arguments'
+                blank=True,
+                help_text='Checker arguments as a JSON object.',
+                verbose_name='checker arguments',
             ),
         ),
         migrations.AlterField(
             model_name='problemtranslation',
             name='description',
             field=models.TextField(
-                validators=[judge.models.problem.disallowed_characters_validator], verbose_name='translated description'
+                validators=[judge.models.problem.disallowed_characters_validator],
+                verbose_name='translated description',
             ),
         ),
         migrations.AlterField(
@@ -700,7 +728,7 @@ class Migration(migrations.Migration):
                 max_length=64,
                 null=True,
                 validators=[
-                    django.core.validators.RegexValidator('^[a-f0-9]{64}$', 'API token must be None or hexadecimal')
+                    django.core.validators.RegexValidator('^[a-f0-9]{64}$', 'API token must be None or hexadecimal'),
                 ],
                 verbose_name='API token',
             ),
@@ -752,7 +780,7 @@ class Migration(migrations.Migration):
                     django.core.validators.RegexValidator(
                         '^(\\[\\])?$|^\\[("[A-Z0-9]{16}", *)*"[A-Z0-9]{16}"\\]$',
                         'Scratch codes must be empty or a JSON array of 16-character Base32 codes.',
-                    )
+                    ),
                 ],
                 verbose_name='scratch codes',
             ),
@@ -1412,7 +1440,7 @@ class Migration(migrations.Migration):
                 max_length=32,
                 null=True,
                 validators=[
-                    django.core.validators.RegexValidator('^$|^[A-Z2-7]{32}$', 'TOTP key must be empty or Base32.')
+                    django.core.validators.RegexValidator('^$|^[A-Z2-7]{32}$', 'TOTP key must be empty or Base32.'),
                 ],
                 verbose_name='TOTP key',
             ),
@@ -1431,14 +1459,17 @@ class Migration(migrations.Migration):
             model_name='solution',
             name='content',
             field=models.TextField(
-                validators=[judge.models.problem.disallowed_characters_validator], verbose_name='editorial content'
+                validators=[judge.models.problem.disallowed_characters_validator],
+                verbose_name='editorial content',
             ),
         ),
         migrations.AlterField(
             model_name='submission',
             name='problem',
             field=models.ForeignKey(
-                on_delete=django.db.models.deletion.CASCADE, to='judge.problem', verbose_name='problem'
+                on_delete=django.db.models.deletion.CASCADE,
+                to='judge.problem',
+                verbose_name='problem',
             ),
         ),
         migrations.AlterField(
@@ -1470,7 +1501,9 @@ class Migration(migrations.Migration):
             model_name='submission',
             name='user',
             field=models.ForeignKey(
-                on_delete=django.db.models.deletion.CASCADE, to='judge.profile', verbose_name='user'
+                on_delete=django.db.models.deletion.CASCADE,
+                to='judge.profile',
+                verbose_name='user',
             ),
         ),
         migrations.AlterField(

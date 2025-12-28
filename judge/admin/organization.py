@@ -94,7 +94,9 @@ class OrganizationAdmin(VersionAdmin):
     @admin.display(description='')
     def show_public(self, obj):
         return format_html(
-            '<a href="{0}" style="white-space:nowrap;">{1}</a>', obj.get_absolute_url(), gettext('View on site')
+            '<a href="{0}" style="white-space:nowrap;">{1}</a>',
+            obj.get_absolute_url(),
+            gettext('View on site'),
         )
 
     def get_readonly_fields(self, request, obj=None):

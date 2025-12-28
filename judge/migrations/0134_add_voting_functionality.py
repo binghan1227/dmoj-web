@@ -65,7 +65,9 @@ class Migration(migrations.Migration):
                 (
                     'vote_time',
                     models.DateTimeField(
-                        auto_now_add=True, help_text='The time this vote was cast.', verbose_name='vote time'
+                        auto_now_add=True,
+                        help_text='The time this vote was cast.',
+                        verbose_name='vote time',
                     ),
                 ),
             ],

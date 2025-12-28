@@ -125,7 +125,7 @@ class APIMixin:
                     error={
                         'code': status_code,
                         'message': message,
-                    }
+                    },
                 ),
                 status=status_code,
             )
@@ -174,7 +174,7 @@ class APIListView(APIMixin, InfinitePaginationMixin, BaseListView):
                     queryset = queryset.filter(
                         **{
                             filter_name: self.request.GET.get(key),
-                        }
+                        },
                     )
                 self.used_basic_filters.add(key)
 
@@ -187,7 +187,7 @@ class APIListView(APIMixin, InfinitePaginationMixin, BaseListView):
                     queryset = queryset.filter(
                         **{
                             filter_name + '__in': self.request.GET.getlist(key),
-                        }
+                        },
                     )
                 self.used_list_filters.add(key)
 
@@ -276,7 +276,8 @@ class APIContestDetail(APIDetailView):
 
         new_ratings_subquery = Rating.objects.filter(participation=OuterRef('pk'))
         old_ratings_subquery = Rating.objects.filter(
-            user=OuterRef('user__pk'), contest__end_time__lt=OuterRef('contest__end_time')
+            user=OuterRef('user__pk'),
+            contest__end_time__lt=OuterRef('contest__end_time'),
         ).order_by('-contest__end_time')
         participations = (
             contest.users.filter(virtual=ContestParticipation.LIVE)
@@ -484,7 +485,9 @@ class APIProblemDetail(APIDetailView):
                     'memory_limit': memory_limit,
                 }
                 for key, time_limit, memory_limit in problem.language_limits.values_list(
-                    'language__key', 'time_limit', 'memory_limit'
+                    'language__key',
+                    'time_limit',
+                    'memory_limit',
                 )
             ],
             'points': problem.points,
@@ -568,7 +571,7 @@ class APIUserDetail(APIDetailView):
                     'rating': rating,
                     'raw_rating': mean,
                     'performance': performance,
-                }
+                },
             )
 
         return {
@@ -615,7 +618,12 @@ class APISubmissionList(APIListView):
         )
         return (
             queryset.select_related(
-                'problem', 'contest', 'contest__participation', 'contest_object', 'user__user', 'language'
+                'problem',
+                'contest',
+                'contest__participation',
+                'contest_object',
+                'user__user',
+                'language',
             )
             .order_by('id')
             .only(
@@ -696,7 +704,7 @@ class APISubmissionDetail(APILoginRequiredMixin, APIDetailView):
                         'cases': batch_cases,
                         'points': batch['points'],
                         'total': batch['total'],
-                    }
+                    },
                 )
 
         return {

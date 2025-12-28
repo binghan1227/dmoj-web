@@ -14,7 +14,10 @@ class Migration(migrations.Migration):
             model_name='ticket',
             name='assignees',
             field=models.ManyToManyField(
-                blank=True, related_name='assigned_tickets', to='judge.Profile', verbose_name='assignees'
+                blank=True,
+                related_name='assigned_tickets',
+                to='judge.Profile',
+                verbose_name='assignees',
             ),
         ),
     ]

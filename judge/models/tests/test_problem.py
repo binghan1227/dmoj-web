@@ -30,7 +30,7 @@ class ProblemTestCase(CommonDataMixin, TestCase):
                     is_staff=True,
                     user_permissions=('edit_all_problem',),
                 ),
-            }
+            },
         )
 
         create_problem_type(name='type')
@@ -348,7 +348,7 @@ class SolutionTestCase(CommonDataMixin, TestCase):
                     username='staff_solution_see_all',
                     user_permissions=('see_private_solution',),
                 ),
-            }
+            },
         )
 
         now = timezone.now()

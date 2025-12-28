@@ -119,7 +119,7 @@ class NewProblemTicketView(ProblemMixin, TitleMixin, NewTicketView):
                 '<a href="{0}">{1}</a>',
                 reverse('problem_detail', args=[self.object.code]),
                 self.object.translated_name(self.request.LANGUAGE_CODE),
-            )
+            ),
         )
 
     def form_valid(self, form):
@@ -306,10 +306,10 @@ class TicketList(LoginRequiredMixin, ListView):
             'user': self.filter_users,
             'assignee': self.filter_assignees,
             'user_id': json.dumps(
-                list(Profile.objects.filter(user__username__in=self.filter_users).values_list('id', flat=True))
+                list(Profile.objects.filter(user__username__in=self.filter_users).values_list('id', flat=True)),
             ),
             'assignee_id': json.dumps(
-                list(Profile.objects.filter(user__username__in=self.filter_assignees).values_list('id', flat=True))
+                list(Profile.objects.filter(user__username__in=self.filter_assignees).values_list('id', flat=True)),
             ),
             'own_id': self.profile.id if self.GET_with_session('own') else 'null',
         }
@@ -363,7 +363,7 @@ class TicketListDataAjax(TicketMixin, SingleObjectMixin, View):
                         truncatechars(message.body, 200),
                     ),
                 },
-            }
+            },
         )
 
 
@@ -385,5 +385,5 @@ class TicketMessageDataAjax(TicketMixin, SingleObjectMixin, View):
                     'title': _('New Ticket Message For: %s') % ticket.title,
                     'body': truncatechars(message.body, 200),
                 },
-            }
+            },
         )

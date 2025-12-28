@@ -12,7 +12,15 @@ from django.utils.safestring import mark_safe
 
 class AceWidget(forms.Textarea):
     def __init__(
-        self, mode=None, theme=None, wordwrap=False, width='100%', height='300px', no_ace_media=False, *args, **kwargs
+        self,
+        mode=None,
+        theme=None,
+        wordwrap=False,
+        width='100%',
+        height='300px',
+        no_ace_media=False,
+        *args,
+        **kwargs,
     ):
         self.mode = mode
         self.theme = theme

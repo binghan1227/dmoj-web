@@ -65,7 +65,7 @@ __all__ = [
 
 def users_for_template(users, order):
     return ranker(
-        users.filter(is_unlisted=False).order_by(order).select_related('user').defer('about', 'user_script', 'notes')
+        users.filter(is_unlisted=False).order_by(order).select_related('user').defer('about', 'user_script', 'notes'),
     )
 
 
@@ -85,7 +85,9 @@ class OrganizationMixin(object):
             key = kwargs.get(self.slug_url_kwarg, None)
             if key:
                 return generic_message(
-                    request, _('No such organization'), _('Could not find an organization with the key "%s".') % key
+                    request,
+                    _('No such organization'),
+                    _('Could not find an organization with the key "%s".') % key,
                 )
             else:
                 return generic_message(request, _('No such organization'), _('Could not find such organization.'))
@@ -120,7 +122,7 @@ class OrganizationDetailView(OrganizationMixin, DetailView):
         self.object = self.get_object()
         if self.object.slug != kwargs['slug']:
             return HttpResponsePermanentRedirect(
-                reverse(request.resolver_match.url_name, args=(self.object.id, self.object.slug))
+                reverse(request.resolver_match.url_name, args=(self.object.id, self.object.slug)),
             )
         context = self.get_context_data(object=self.object)
         return self.render_to_response(context)
@@ -157,7 +159,7 @@ class OrganizationHome(OrganizationDetailView):
             classes = classes.annotate(
                 joined=Subquery(
                     self.request.profile.classes.filter(id=OuterRef('id')).values('id'),
-                )
+                ),
             ).order_by('-joined', 'name')
         else:
             classes = classes.annotate(joined=Value(0, output_field=IntegerField()))
@@ -297,7 +299,7 @@ class RequestJoinOrganization(LoginRequiredMixin, SingleObjectMixin, FormView):
                     request.organization.slug,
                     request.id,
                 ),
-            )
+            ),
         )
 
 
@@ -451,7 +453,7 @@ class EditOrganization(LoginRequiredMixin, TitleMixin, OrganizationMixin, Update
     def get_form(self, form_class=None):
         form = super(EditOrganization, self).get_form(form_class)
         form.fields['admins'].queryset = Profile.objects.filter(
-            Q(organizations=self.object) | Q(admin_of=self.object)
+            Q(organizations=self.object) | Q(admin_of=self.object),
         ).distinct()
         return form
 
@@ -466,7 +468,10 @@ class EditOrganization(LoginRequiredMixin, TitleMixin, OrganizationMixin, Update
             return super(EditOrganization, self).dispatch(request, *args, **kwargs)
         except PermissionDenied:
             return generic_message(
-                request, _("Can't edit organization"), _('You are not allowed to edit this organization.'), status=403
+                request,
+                _("Can't edit organization"),
+                _('You are not allowed to edit this organization.'),
+                status=403,
             )
 
 
@@ -485,7 +490,10 @@ class KickUserWidgetView(LoginRequiredMixin, OrganizationMixin, SingleObjectMixi
             user = Profile.objects.get(id=request.POST.get('user', None))
         except Profile.DoesNotExist:
             return generic_message(
-                request, _("Can't kick user"), _('The user you are trying to kick does not exist!'), status=400
+                request,
+                _("Can't kick user"),
+                _('The user you are trying to kick does not exist!'),
+                status=400,
             )
 
         if not organization.members.filter(id=user.id).exists():
@@ -534,7 +542,7 @@ class ClassHome(QueryStringSortMixin, ClassMixin, DetailView):
             escape(_('Class {name} in {organization}')).format(
                 name=escape(self.object.name),
                 organization=format_html('<a href="{0}">{1}</a>', org.get_absolute_url(), org.name),
-            )
+            ),
         )
 
     def get_title(self):
@@ -592,5 +600,5 @@ class RequestJoinClass(LoginRequiredMixin, ClassMixin, FormView):
                     request.organization.slug,
                     request.id,
                 ),
-            )
+            ),
         )

@@ -37,10 +37,10 @@ class Command(BaseCommand):
                             'problem_name': problem_name,
                             'description': problem.description if trans is None else trans.description,
                             'url': '',
-                        }
+                        },
                     )
                     .replace('"//', '"https://')
                     .replace("'//", "'https://"),
                     title=problem_name,
-                )
+                ),
             )

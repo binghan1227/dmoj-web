@@ -10,7 +10,7 @@ class LockModel(object):
             chain(
                 ('`%s` WRITE' % model._meta.db_table for model in write),
                 ('`%s` READ' % model._meta.db_table for model in read),
-            )
+            ),
         )
         self.cursor = connection.cursor()
 

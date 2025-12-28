@@ -41,7 +41,7 @@ class ProblemForm(ModelForm):
         self.fields['change_message'].widget.attrs.update(
             {
                 'placeholder': gettext('Describe the changes you made (optional)'),
-            }
+            },
         )
 
     class Meta:
@@ -190,7 +190,7 @@ class ProblemAdmin(NoBatchDeleteMixin, VersionAdmin):
         actions = super(ProblemAdmin, self).get_actions(request)
 
         if request.user.has_perm('judge.change_public_visibility') or request.user.has_perm(
-            'judge.create_private_problem'
+            'judge.create_private_problem',
         ):
             func, name, desc = self.get_action('make_public')
             actions[name] = (func, name, desc)

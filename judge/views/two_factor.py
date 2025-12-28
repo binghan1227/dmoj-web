@@ -258,7 +258,8 @@ class TwoFactorLoginView(RedirectURLMixin, TOTPView, ContextMixin):
 
     def check_skip(self):
         return (not self.profile.is_totp_enabled and not self.profile.is_webauthn_enabled) or self.request.session.get(
-            '2fa_passed', False
+            '2fa_passed',
+            False,
         )
 
     def next_page(self):

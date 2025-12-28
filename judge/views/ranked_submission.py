@@ -76,9 +76,11 @@ class RankedSubmissions(ProblemSubmissions):
             escape(_('Best solutions for %s'))
             % (
                 format_html(
-                    '<a href="{1}">{0}</a>', self.problem_name, reverse('problem_detail', args=[self.problem.code])
+                    '<a href="{1}">{0}</a>',
+                    self.problem_name,
+                    reverse('problem_detail', args=[self.problem.code]),
                 ),
-            )
+            ),
         )
 
     def _get_result_data(self, queryset=None):
@@ -105,21 +107,27 @@ class ContestRankedSubmission(ForceContestMixin, RankedSubmissions):
                 escape(_('Best solutions for %(problem)s in %(contest)s'))
                 % {
                     'problem': format_html(
-                        '<a href="{1}">{0}</a>', self.problem_name, reverse('problem_detail', args=[self.problem.code])
+                        '<a href="{1}">{0}</a>',
+                        self.problem_name,
+                        reverse('problem_detail', args=[self.problem.code]),
                     ),
                     'contest': format_html(
-                        '<a href="{1}">{0}</a>', self.contest.name, reverse('contest_view', args=[self.contest.key])
+                        '<a href="{1}">{0}</a>',
+                        self.contest.name,
+                        reverse('contest_view', args=[self.contest.key]),
                     ),
-                }
+                },
             )
         return mark_safe(
             escape(_('Best solutions for problem %(number)s in %(contest)s'))
             % {
                 'number': self.get_problem_number(self.problem),
                 'contest': format_html(
-                    '<a href="{1}">{0}</a>', self.contest.name, reverse('contest_view', args=[self.contest.key])
+                    '<a href="{1}">{0}</a>',
+                    self.contest.name,
+                    reverse('contest_view', args=[self.contest.key]),
                 ),
-            }
+            },
         )
 
     def _get_queryset(self):

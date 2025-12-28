@@ -222,7 +222,7 @@ class HeavySelect2Mixin(Select2Mixin):
         if isinstance(self.choices, ModelChoiceIterator):
             chosen = copy(self.choices)
             chosen.queryset = chosen.queryset.filter(
-                pk__in=[int(i) for i in result if isinstance(i, int) or i.isdigit()]
+                pk__in=[int(i) for i in result if isinstance(i, int) or i.isdigit()],
             )
             # https://code.djangoproject.com/ticket/33155
             self.choices = {(value if isinstance(value, str) else value.value, label) for value, label in chosen}

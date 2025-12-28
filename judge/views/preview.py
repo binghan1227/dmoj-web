@@ -14,7 +14,7 @@ class MarkdownPreviewView(TemplateResponseMixin, ContextMixin, View):
         return self.render_to_response(
             self.get_context_data(
                 preview_data=data,
-            )
+            ),
         )
 
 

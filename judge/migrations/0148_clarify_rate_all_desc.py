@@ -12,7 +12,9 @@ class Migration(migrations.Migration):
             model_name='contest',
             name='rate_all',
             field=models.BooleanField(
-                default=False, help_text='Rate users even if they make no submissions.', verbose_name='rate all'
+                default=False,
+                help_text='Rate users even if they make no submissions.',
+                verbose_name='rate all',
             ),
         ),
     ]

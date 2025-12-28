@@ -8,14 +8,22 @@ from judge.models.profile import Profile
 class Ticket(models.Model):
     title = models.CharField(max_length=100, verbose_name=_('ticket title'))
     user = models.ForeignKey(
-        Profile, verbose_name=_('ticket creator'), related_name='tickets', on_delete=models.CASCADE
+        Profile,
+        verbose_name=_('ticket creator'),
+        related_name='tickets',
+        on_delete=models.CASCADE,
     )
     time = models.DateTimeField(verbose_name=_('creation time'), auto_now_add=True)
     assignees = models.ManyToManyField(
-        Profile, verbose_name=_('assignees'), related_name='assigned_tickets', blank=True
+        Profile,
+        verbose_name=_('assignees'),
+        related_name='assigned_tickets',
+        blank=True,
     )
     notes = models.TextField(
-        verbose_name=_('quick notes'), blank=True, help_text=_('Staff notes for this issue to aid in processing.')
+        verbose_name=_('quick notes'),
+        blank=True,
+        help_text=_('Staff notes for this issue to aid in processing.'),
     )
     content_type = models.ForeignKey(ContentType, verbose_name=_('linked item type'), on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField(verbose_name=_('linked item ID'))

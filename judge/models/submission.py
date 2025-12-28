@@ -72,11 +72,19 @@ class Submission(models.Model):
     memory = models.FloatField(verbose_name=_('memory usage'), null=True)
     points = models.FloatField(verbose_name=_('points granted'), null=True)
     language = models.ForeignKey(
-        Language, verbose_name=_('submission language'), on_delete=models.CASCADE, db_index=False
+        Language,
+        verbose_name=_('submission language'),
+        on_delete=models.CASCADE,
+        db_index=False,
     )
     status = models.CharField(verbose_name=_('status'), max_length=2, choices=STATUS, default='QU', db_index=True)
     result = models.CharField(
-        verbose_name=_('result'), max_length=3, choices=SUBMISSION_RESULT, default=None, null=True, blank=True
+        verbose_name=_('result'),
+        max_length=3,
+        choices=SUBMISSION_RESULT,
+        default=None,
+        null=True,
+        blank=True,
     )
     error = models.TextField(verbose_name=_('compile errors'), null=True, blank=True)
     current_testcase = models.IntegerField(default=0)
@@ -84,7 +92,11 @@ class Submission(models.Model):
     case_points = models.FloatField(verbose_name=_('test case points'), default=0)
     case_total = models.FloatField(verbose_name=_('test case total points'), default=0)
     judged_on = models.ForeignKey(
-        'Judge', verbose_name=_('judged on'), null=True, blank=True, on_delete=models.SET_NULL
+        'Judge',
+        verbose_name=_('judged on'),
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
     )
     judged_date = models.DateTimeField(verbose_name=_('submission judge time'), default=None, null=True)
     rejudged_date = models.DateTimeField(verbose_name=_('last rejudge date by admin'), null=True, blank=True)
@@ -191,7 +203,8 @@ class Submission(models.Model):
 
         contest_problem = contest.problem
         contest.points = round(
-            self.case_points / self.case_total * contest_problem.points if self.case_total > 0 else 0, 3
+            self.case_points / self.case_total * contest_problem.points if self.case_total > 0 else 0,
+            3,
         )
         if not contest_problem.partial and contest.points != contest_problem.points:
             contest.points = 0
@@ -273,7 +286,10 @@ class Submission(models.Model):
 
 class SubmissionSource(models.Model):
     submission = models.OneToOneField(
-        Submission, on_delete=models.CASCADE, verbose_name=_('associated submission'), related_name='source'
+        Submission,
+        on_delete=models.CASCADE,
+        verbose_name=_('associated submission'),
+        related_name='source',
     )
     source = models.TextField(verbose_name=_('source code'), max_length=65536)
 

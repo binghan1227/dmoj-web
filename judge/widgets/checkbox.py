@@ -21,6 +21,6 @@ class CheckboxSelectMultipleWithSelectAll(forms.CheckboxSelectMultiple):
                     'select_all_name': select_all_name,
                     'all_selected': all(choice[0] in value for choice in self.choices) if value else False,
                     'empty': not self.choices,
-                }
-            )
+                },
+            ),
         )

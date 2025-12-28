@@ -24,7 +24,7 @@ class SubmissionTestCase(CommonDataMixin, TestCase):
                     is_staff=True,
                     user_permissions=('view_all_submission',),
                 ),
-            }
+            },
         )
 
         self.basic_submission = Submission.objects.create(

@@ -113,7 +113,7 @@ class ContestForm(ModelForm):
         if 'rate_exclude' in self.fields:
             if self.instance and self.instance.id:
                 self.fields['rate_exclude'].queryset = Profile.objects.filter(
-                    contest_history__contest=self.instance
+                    contest_history__contest=self.instance,
                 ).distinct()
             else:
                 self.fields['rate_exclude'].queryset = Profile.objects.none()
@@ -156,7 +156,7 @@ class ContestAdmin(NoBatchDeleteMixin, SortableAdminBase, VersionAdmin):
                     'tester_see_submissions',
                     'tester_see_scoreboard',
                     'spectators',
-                )
+                ),
             },
         ),
         (
@@ -172,7 +172,7 @@ class ContestAdmin(NoBatchDeleteMixin, SortableAdminBase, VersionAdmin):
                     'locked_after',
                     'scoreboard_visibility',
                     'points_precision',
-                )
+                ),
             },
         ),
         (_('Scheduling'), {'fields': ('start_time', 'end_time', 'time_limit')}),
@@ -188,7 +188,7 @@ class ContestAdmin(NoBatchDeleteMixin, SortableAdminBase, VersionAdmin):
                     'rating_ceiling',
                     'performance_ceiling_override',
                     'rate_exclude',
-                )
+                ),
             },
         ),
         (
@@ -202,7 +202,7 @@ class ContestAdmin(NoBatchDeleteMixin, SortableAdminBase, VersionAdmin):
                     'join_organizations',
                     'view_contest_scoreboard',
                     'view_contest_submissions',
-                )
+                ),
             },
         ),
         (_('Justice'), {'fields': ('banned_users',)}),
@@ -231,7 +231,7 @@ class ContestAdmin(NoBatchDeleteMixin, SortableAdminBase, VersionAdmin):
         actions = super(ContestAdmin, self).get_actions(request)
 
         if request.user.has_perm('judge.change_contest_visibility') or request.user.has_perm(
-            'judge.create_private_contest'
+            'judge.create_private_contest',
         ):
             for action in ('make_visible', 'make_hidden'):
                 actions[action] = self.get_action(action)
@@ -340,7 +340,8 @@ class ContestAdmin(NoBatchDeleteMixin, SortableAdminBase, VersionAdmin):
             self.set_locked_after(row, timezone.now())
         count = queryset.count()
         self.message_user(
-            request, ngettext('%d contest successfully locked.', '%d contests successfully locked.', count) % count
+            request,
+            ngettext('%d contest successfully locked.', '%d contests successfully locked.', count) % count,
         )
 
     @admin.display(description=_('Unlock contest submissions'))
@@ -349,7 +350,8 @@ class ContestAdmin(NoBatchDeleteMixin, SortableAdminBase, VersionAdmin):
             self.set_locked_after(row, None)
         count = queryset.count()
         self.message_user(
-            request, ngettext('%d contest successfully unlocked.', '%d contests successfully unlocked.', count) % count
+            request,
+            ngettext('%d contest successfully unlocked.', '%d contests successfully unlocked.', count) % count,
         )
 
     def set_locked_after(self, contest, locked_after):
@@ -357,7 +359,7 @@ class ContestAdmin(NoBatchDeleteMixin, SortableAdminBase, VersionAdmin):
             contest.locked_after = locked_after
             contest.save()
             Submission.objects.filter(contest_object=contest, contest__participation__virtual=0).update(
-                locked_after=locked_after
+                locked_after=locked_after,
             )
 
     def get_urls(self):
@@ -476,7 +478,8 @@ class ContestParticipationAdmin(admin.ModelAdmin):
             participation.recompute_results()
             count += 1
         self.message_user(
-            request, ngettext('%d participation recalculated.', '%d participations recalculated.', count) % count
+            request,
+            ngettext('%d participation recalculated.', '%d participations recalculated.', count) % count,
         )
 
     @admin.display(description=_('username'), ordering='user__user__username')

@@ -21,7 +21,9 @@ def reset_judges():
 def judge_daemon():
     reset_judges()
     Submission.objects.filter(status__in=Submission.IN_PROGRESS_GRADING_STATUS).update(
-        status='IE', result='IE', error=None
+        status='IE',
+        result='IE',
+        error=None,
     )
     judges = JudgeList()
 

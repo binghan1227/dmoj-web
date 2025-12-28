@@ -45,7 +45,8 @@ def disallowed_characters_validator(text):
     common_disallowed_characters = set(text) & settings.DMOJ_PROBLEM_STATEMENT_DISALLOWED_CHARACTERS
     if common_disallowed_characters:
         raise ValidationError(
-            _('Disallowed characters: %(value)s'), params={'value': ''.join(common_disallowed_characters)}
+            _('Disallowed characters: %(value)s'),
+            params={'value': ''.join(common_disallowed_characters)},
         )
 
 
@@ -85,7 +86,10 @@ class License(models.Model):
     link = models.CharField(max_length=256, verbose_name=_('link'))
     name = models.CharField(max_length=256, verbose_name=_('full name'))
     display = models.CharField(
-        max_length=256, blank=True, verbose_name=_('short name'), help_text=_('Displayed on pages under this license.')
+        max_length=256,
+        blank=True,
+        verbose_name=_('short name'),
+        help_text=_('Displayed on pages under this license.'),
     )
     icon = models.CharField(max_length=256, blank=True, verbose_name=_('icon'), help_text=_('URL to the icon.'))
     text = models.TextField(verbose_name=_('license text'))
@@ -110,7 +114,7 @@ class TranslatedProblemQuerySet(SearchQuerySet):
             i18n_translation=FilteredRelation(
                 'translations',
                 condition=Q(translations__language=language),
-            )
+            ),
         ).annotate(i18n_name=Coalesce(F('i18n_translation__name'), F('name'), output_field=models.CharField()))
 
 
@@ -212,7 +216,9 @@ class Problem(models.Model):
     )
     partial = models.BooleanField(verbose_name=_('allows partial points'), default=False)
     allowed_languages = models.ManyToManyField(
-        Language, verbose_name=_('allowed languages'), help_text=_('List of allowed submission languages.')
+        Language,
+        verbose_name=_('allowed languages'),
+        help_text=_('List of allowed submission languages.'),
     )
     is_public = models.BooleanField(verbose_name=_('publicly visible'), db_index=True, default=False)
     is_manually_managed = models.BooleanField(
@@ -249,7 +255,9 @@ class Problem(models.Model):
         help_text=_('Plain-text, shown in meta description tag, e.g. for social media.'),
     )
     user_count = models.IntegerField(
-        verbose_name=_('number of users'), default=0, help_text=_('The number of users who solved the problem.')
+        verbose_name=_('number of users'),
+        default=0,
+        help_text=_('The number of users who solved the problem.'),
     )
     ac_rate = models.FloatField(verbose_name=_('solve rate'), default=0)
     is_full_markup = models.BooleanField(verbose_name=_('allow full markdown access'), default=False)
@@ -438,7 +446,7 @@ class Problem(models.Model):
     @cached_property
     def editor_ids(self):
         return self.author_ids.union(
-            Problem.curators.through.objects.filter(problem=self).values_list('profile_id', flat=True)
+            Problem.curators.through.objects.filter(problem=self).values_list('profile_id', flat=True),
         )
 
     @cached_property
@@ -609,7 +617,8 @@ class ProblemTranslation(models.Model):
     language = models.CharField(verbose_name=_('language'), max_length=7, choices=settings.LANGUAGES)
     name = models.CharField(verbose_name=_('translated name'), max_length=100, db_index=True)
     description = models.TextField(
-        verbose_name=_('translated description'), validators=[disallowed_characters_validator]
+        verbose_name=_('translated description'),
+        validators=[disallowed_characters_validator],
     )
 
     class Meta:
@@ -665,7 +674,11 @@ class ProblemTemplate(models.Model):
 
 class Solution(models.Model):
     problem = models.OneToOneField(
-        Problem, on_delete=CASCADE, verbose_name=_('associated problem'), blank=True, related_name='solution'
+        Problem,
+        on_delete=CASCADE,
+        verbose_name=_('associated problem'),
+        blank=True,
+        related_name='solution',
     )
     is_public = models.BooleanField(verbose_name=_('public visibility'), default=False)
     publish_on = models.DateTimeField(verbose_name=_('publish date'))
@@ -708,10 +721,15 @@ class ProblemPointsVote(models.Model):
     )
     voter = models.ForeignKey(Profile, verbose_name=_('voter'), related_name='problem_points_votes', on_delete=CASCADE)
     problem = models.ForeignKey(
-        Problem, verbose_name=_('problem'), related_name='problem_points_votes', on_delete=CASCADE
+        Problem,
+        verbose_name=_('problem'),
+        related_name='problem_points_votes',
+        on_delete=CASCADE,
     )
     vote_time = models.DateTimeField(
-        verbose_name=_('vote time'), help_text=_('The time this vote was cast.'), auto_now_add=True
+        verbose_name=_('vote time'),
+        help_text=_('The time this vote was cast.'),
+        auto_now_add=True,
     )
     note = models.TextField(
         verbose_name=_('note'),

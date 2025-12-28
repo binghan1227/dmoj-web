@@ -46,10 +46,14 @@ class EncryptedNullCharField(EncryptedCharField):
 class Organization(models.Model):
     name = models.CharField(max_length=128, verbose_name=_('organization title'))
     slug = models.SlugField(
-        max_length=128, verbose_name=_('organization slug'), help_text=_('Organization name shown in URLs.')
+        max_length=128,
+        verbose_name=_('organization slug'),
+        help_text=_('Organization name shown in URLs.'),
     )
     short_name = models.CharField(
-        max_length=20, verbose_name=_('short name'), help_text=_('Displayed beside user name during contests.')
+        max_length=20,
+        verbose_name=_('short name'),
+        help_text=_('Displayed beside user name during contests.'),
     )
     about = models.TextField(verbose_name=_('organization description'))
     admins = models.ManyToManyField(
@@ -60,7 +64,9 @@ class Organization(models.Model):
     )
     creation_date = models.DateTimeField(verbose_name=_('creation date'), auto_now_add=True)
     is_open = models.BooleanField(
-        verbose_name=_('is open organization?'), help_text=_('Allow joining organization.'), default=True
+        verbose_name=_('is open organization?'),
+        help_text=_('Allow joining organization.'),
+        default=True,
     )
     slots = models.IntegerField(
         verbose_name=_('maximum size'),
@@ -69,7 +75,11 @@ class Organization(models.Model):
         help_text=_('Maximum amount of users in this organization, only applicable to private organizations.'),
     )
     access_code = models.CharField(
-        max_length=7, help_text=_('Student access code.'), verbose_name=_('access code'), null=True, blank=True
+        max_length=7,
+        help_text=_('Student access code.'),
+        verbose_name=_('access code'),
+        null=True,
+        blank=True,
     )
     logo_override_image = models.CharField(
         verbose_name=_('logo override image'),
@@ -135,7 +145,11 @@ class Class(models.Model):
     description = models.TextField(verbose_name=_('class description'), blank=True)
     is_active = models.BooleanField(verbose_name=_('is class active'), default=True)
     access_code = models.CharField(
-        max_length=7, verbose_name=_('access code'), null=True, blank=True, help_text=_('Student access code.')
+        max_length=7,
+        verbose_name=_('access code'),
+        null=True,
+        blank=True,
+        help_text=_('Student access code.'),
     )
     admins = models.ManyToManyField(
         'Profile',
@@ -144,7 +158,11 @@ class Class(models.Model):
         help_text=_('Those who can approve membership to this class.'),
     )
     members = models.ManyToManyField(
-        'Profile', verbose_name=_('members'), blank=True, related_name='classes', related_query_name='class'
+        'Profile',
+        verbose_name=_('members'),
+        blank=True,
+        related_name='classes',
+        related_query_name='class',
     )
 
     @classmethod
@@ -181,7 +199,10 @@ class Profile(models.Model):
     user = models.OneToOneField(User, verbose_name=_('user associated'), on_delete=models.CASCADE)
     about = models.TextField(verbose_name=_('self-description'), null=True, blank=True)
     timezone = models.CharField(
-        max_length=50, verbose_name=_('time zone'), choices=TIMEZONE, default=settings.DEFAULT_USER_TIME_ZONE
+        max_length=50,
+        verbose_name=_('time zone'),
+        choices=TIMEZONE,
+        default=settings.DEFAULT_USER_TIME_ZONE,
     )
     language = models.ForeignKey(
         'Language',
@@ -197,7 +218,11 @@ class Profile(models.Model):
     last_access = models.DateTimeField(verbose_name=_('last access time'), default=now)
     ip = models.GenericIPAddressField(verbose_name=_('last IP'), blank=True, null=True)
     organizations = SortedManyToManyField(
-        Organization, verbose_name=_('organization'), blank=True, related_name='members', related_query_name='member'
+        Organization,
+        verbose_name=_('organization'),
+        blank=True,
+        related_name='members',
+        related_query_name='member',
     )
     display_rank = models.CharField(
         max_length=10,
@@ -206,10 +231,14 @@ class Profile(models.Model):
         choices=(('user', _('Normal User')), ('setter', _('Problem Setter')), ('admin', _('Admin'))),
     )
     mute = models.BooleanField(
-        verbose_name=_('comment mute'), help_text=_('Some users are at their best when silent.'), default=False
+        verbose_name=_('comment mute'),
+        help_text=_('Some users are at their best when silent.'),
+        default=False,
     )
     is_unlisted = models.BooleanField(
-        verbose_name=_('unlisted user'), help_text=_('User will not be ranked.'), default=False
+        verbose_name=_('unlisted user'),
+        help_text=_('User will not be ranked.'),
+        default=False,
     )
     is_banned_from_problem_voting = models.BooleanField(
         verbose_name=_('banned from voting on problem point values'),
@@ -267,7 +296,7 @@ class Profile(models.Model):
             RegexValidator(
                 r'^(\[\])?$|^\[("[A-Z0-9]{16}", *)*"[A-Z0-9]{16}"\]$',
                 _('Scratch codes must be empty or a JSON array of 16-character Base32 codes.'),
-            )
+            ),
         ],
     )
     last_totp_timecode = models.IntegerField(verbose_name=_('last TOTP timecode'), default=0)
@@ -339,7 +368,9 @@ class Profile(models.Model):
         entries = min(len(data), len(table))
         problems = (
             public_problems.filter(
-                submission__user=self, submission__result='AC', submission__case_points__gte=F('submission__case_total')
+                submission__user=self,
+                submission__result='AC',
+                submission__case_points__gte=F('submission__case_total'),
             )
             .values('id')
             .distinct()
@@ -438,7 +469,10 @@ class Profile(models.Model):
 
 class WebAuthnCredential(models.Model):
     user = models.ForeignKey(
-        Profile, verbose_name=_('user'), related_name='webauthn_credentials', on_delete=models.CASCADE
+        Profile,
+        verbose_name=_('user'),
+        related_name='webauthn_credentials',
+        on_delete=models.CASCADE,
     )
     name = models.CharField(verbose_name=_('device name'), max_length=100)
     cred_id = models.CharField(verbose_name=_('credential ID'), max_length=255, unique=True)
@@ -471,7 +505,10 @@ class WebAuthnCredential(models.Model):
 class OrganizationRequest(models.Model):
     user = models.ForeignKey(Profile, verbose_name=_('user'), related_name='requests', on_delete=models.CASCADE)
     organization = models.ForeignKey(
-        Organization, verbose_name=_('organization'), related_name='requests', on_delete=models.CASCADE
+        Organization,
+        verbose_name=_('organization'),
+        related_name='requests',
+        on_delete=models.CASCADE,
     )
     time = models.DateTimeField(verbose_name=_('request time'), auto_now_add=True)
     state = models.CharField(
