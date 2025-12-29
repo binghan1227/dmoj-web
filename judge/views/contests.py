@@ -24,7 +24,7 @@ from django.utils.safestring import mark_safe
 from django.utils.timezone import make_aware
 from django.utils.translation import gettext as _, gettext_lazy
 from django.views.generic import ListView, TemplateView, View
-from django.views.generic.detail import DetailView, SingleObjectMixin
+from django.views.generic.detail import BaseDetailView, DetailView, SingleObjectMixin
 from django.views.generic.list import BaseListView
 from icalendar import Calendar as ICalendar, Event
 from reversion import revisions
@@ -908,7 +908,7 @@ class ContestTagDetail(TitleMixin, ContestTagDetailAjax):
         return _('Contest tag: %s') % self.object.name
 
 
-class ContestExportScores(ContestMixin, PermissionRequiredMixin, View):
+class ContestExportScores(ContestMixin, PermissionRequiredMixin, BaseDetailView):
     permission_required = 'judge.change_contest'
 
     def get(self, request, *args, **kwargs):
@@ -926,7 +926,7 @@ class ContestExportScores(ContestMixin, PermissionRequiredMixin, View):
         return response
 
 
-class ContestExportSubmissions(ContestMixin, PermissionRequiredMixin, View):
+class ContestExportSubmissions(ContestMixin, PermissionRequiredMixin, BaseDetailView):
     permission_required = 'judge.change_contest'
 
     def get(self, request, *args, **kwargs):

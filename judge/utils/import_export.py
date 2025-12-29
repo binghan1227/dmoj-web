@@ -185,6 +185,7 @@ def export_contest_submissions_zip(contest: Contest, include_disqualified: bool 
         'participation__user__user',
         'submission__user__user',
         'submission__problem',
+        'submission__language',
         'problem__problem',
     ).prefetch_related('submission__source')
 
@@ -218,8 +219,8 @@ def export_contest_submissions_zip(contest: Contest, include_disqualified: bool 
             username = prof_user.username or f'user{prof_user.id}'
             problem_code = (sub.problem.code or cs.problem.problem.code or f'prob{cs.problem_id}')
 
-            # Sanitization could be added here if needed for filenames
-            fname = f'{username}/{problem_code}-{sub.id}.txt'
+            ext = sub.language.extension or 'txt'
+            fname = f'{username}/{problem_code}-{sub.id}.{ext}'
             zf.writestr(fname, source_obj.source)
 
     return zip_buffer.getvalue()

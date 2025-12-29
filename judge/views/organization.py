@@ -511,6 +511,7 @@ class OrganizationImportUsers(LoginRequiredMixin, OrganizationMixin, FormView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['organization'] = self.object
         context['title'] = _('Import Users - %s') % self.object.name
         context['can_edit'] = self.can_edit_organization()
         return context

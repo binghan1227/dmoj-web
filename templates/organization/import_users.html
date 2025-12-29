@@ -1,16 +1,7 @@
-{% extends "common-content.html" %}
+{% extends "base.html" %}
 
-{% block info_float %}
-    <div class="side-box">
-        <h4>{{ _('Navigation') }}</h4>
-        <ul class="nav nav-list">
-            <li><a href="{{ organization.get_absolute_url() }}"><i class="fa fa-arrow-left"></i> {{ _('Back to Organization') }}</a></li>
-        </ul>
-    </div>
-{% endblock %}
-
-{% block description %}
-    <div class="content-description">
+{% block body %}
+    <div style="margin: 0 20px;">
         <h3>{{ _('Import Users to') }} {{ organization.name }}</h3>
         <p>
             {{ _('Upload a CSV file with the following columns:') }} <code>username</code>, <code>first_name</code>, <code>last_name</code>, <code>email</code>, <code>password</code> (optional).
@@ -18,9 +9,9 @@
 
         <form enctype="multipart/form-data" method="post" class="form-horizontal">
             {% csrf_token %}
-            {% if form.non_field_errors %}
+            {% if form.non_field_errors() %}
                 <div class="alert alert-error">
-                    {{ form.non_field_errors }}
+                    {{ form.non_field_errors() }}
                 </div>
             {% endif %}
 
@@ -49,8 +40,9 @@
                 </label>
             </div>
 
-            <div class="form-actions">
-                <button type="submit" class="button">{{ _('Import Users') }}</button>
+            <div style="margin-top: 1em;">
+                <button type="submit" class="button" style="display: inline-block; width: auto; margin-right: 10px;">{{ _('Import Users') }}</button>
+                <a href="{{ organization.get_absolute_url() }}" class="button" style="display: inline-block; width: auto;">{{ _('Cancel') }}</a>
             </div>
         </form>
 
