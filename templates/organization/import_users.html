@@ -1,0 +1,75 @@
+{% extends "organization/base.html" %}
+
+{% block title_ruler %}{% endblock %}
+
+{% block title_row %}
+    {% set tab = 'import_users' %}
+    {% set title = organization.name %}
+    {% include "organization/header.html" %}
+{% endblock %}
+
+{% block description %}
+    <div class="content-description">
+        <h3>{{ _('Import Users from CSV') }}</h3>
+        <p>
+            {{ _('Upload a CSV file with the following columns:') }} <code>username</code>, <code>first_name</code>, <code>last_name</code>, <code>email</code>, <code>password</code> (optional).
+        </p>
+
+        <form enctype="multipart/form-data" method="post">
+            {% csrf_token %}
+            {% if form.non_field_errors %}
+                <div class="alert alert-error">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
+            <div class="form-group {% if form.csv_file.errors %}error{% endif %}">
+                <label for="{{ form.csv_file.id_for_label }}">{{ form.csv_file.label }}</label>
+                {{ form.csv_file }}
+                {% if form.csv_file.errors %}
+                     <span class="help-inline">{{ form.csv_file.errors[0] }}</span>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label class="checkbox">
+                    {{ form.update_existing }}
+                    {{ form.update_existing.label }}
+                </label>
+                <span class="help-block">{{ _('Update names/emails if username already exists. Passwords are never updated.') }}</span>
+            </div>
+
+            <div class="form-group">
+                <label class="checkbox">
+                    {{ form.activate }}
+                    {{ form.activate.label }}
+                </label>
+            </div>
+
+            <div style="margin-top: 1em;">
+                <button type="submit" class="button">{{ _('Import') }}</button>
+            </div>
+        </form>
+
+        {% if result %}
+            <hr>
+            <h4>{{ _('Import Result') }}</h4>
+            <ul>
+                <li>{{ _('Created:') }} {{ result.created }}</li>
+                <li>{{ _('Updated:') }} {{ result.updated }}</li>
+                <li>{{ _('Skipped:') }} {{ result.skipped }}</li>
+                <li>{{ _('Organization Linked:') }} {{ result.org_linked }}</li>
+            </ul>
+            {% if result.errors %}
+                <div class="alert alert-error">
+                    <strong>{{ _('Errors:') }}</strong>
+                    <ul>
+                    {% for error in result.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+        {% endif %}
+    </div>
+{% endblock %}

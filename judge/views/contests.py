@@ -46,7 +46,7 @@ from judge.utils.views import DiggPaginatorMixin, QueryStringSortMixin, SingleOb
 __all__ = ['ContestList', 'ContestDetail', 'ContestRanking', 'ContestJoin', 'ContestLeave', 'ContestCalendar',
            'ContestClone', 'ContestStats', 'ContestMossView', 'ContestMossDelete', 'contest_ranking_ajax',
            'ContestParticipationList', 'ContestParticipationDisqualify', 'get_contest_ranking_list',
-           'base_contest_ranking_list']
+           'base_contest_ranking_list', 'ContestExportScores', 'ContestExportSubmissions']
 
 
 def _find_contest(request, key, private_check=True):
@@ -906,3 +906,40 @@ class ContestTagDetail(TitleMixin, ContestTagDetailAjax):
 
     def get_title(self):
         return _('Contest tag: %s') % self.object.name
+
+
+class ContestExportScores(ContestMixin, PermissionRequiredMixin, View):
+    permission_required = 'judge.change_contest'
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        if not self.object.is_editable_by(request.user):
+            return self.handle_no_permission()
+
+        from judge.utils.import_export import export_contest_scores_csv
+        # Defaults to match management command behavior, can be expanded with query params if needed
+        csv_content = export_contest_scores_csv(self.object, include_disqualified=False, include_virtual=False)
+
+        response = HttpResponse(csv_content, content_type='text/csv')
+        filename = f'{self.object.key}-scores.csv'
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
+
+
+class ContestExportSubmissions(ContestMixin, PermissionRequiredMixin, View):
+    permission_required = 'judge.change_contest'
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        if not self.object.is_editable_by(request.user):
+            return self.handle_no_permission()
+
+        from judge.utils.import_export import export_contest_submissions_zip
+        # Defaults to match management command behavior
+        zip_bytes = export_contest_submissions_zip(self.object, include_disqualified=False,
+                                                   include_virtual=False, latest_only=True)
+
+        response = HttpResponse(zip_bytes, content_type='application/zip')
+        filename = f'{self.object.key}-submissions.zip'
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response

@@ -27,7 +27,7 @@ from judge.utils.views import DiggPaginatorMixin, QueryStringSortMixin, TitleMix
 __all__ = ['OrganizationList', 'OrganizationHome', 'OrganizationUsers', 'OrganizationMembershipChange',
            'JoinOrganization', 'LeaveOrganization', 'EditOrganization', 'RequestJoinOrganization',
            'OrganizationRequestDetail', 'OrganizationRequestView', 'OrganizationRequestLog',
-           'KickUserWidgetView', 'ClassHome', 'RequestJoinClass']
+           'KickUserWidgetView', 'ClassHome', 'RequestJoinClass', 'OrganizationImportUsers']
 
 
 def users_for_template(users, order):
@@ -497,3 +497,48 @@ class RequestJoinClass(LoginRequiredMixin, ClassMixin, FormView):
         return HttpResponseRedirect(reverse('request_organization_detail', args=(
             request.organization.id, request.organization.slug, request.id,
         )))
+
+
+class OrganizationImportForm(forms.Form):
+    csv_file = forms.FileField(label=gettext_lazy('CSV File'))
+    update_existing = forms.BooleanField(required=False, label=gettext_lazy('Update existing users'))
+    activate = forms.BooleanField(required=False, initial=True, label=gettext_lazy('Activate users'))
+
+
+class OrganizationImportUsers(LoginRequiredMixin, OrganizationMixin, FormView):
+    template_name = 'organization/import_users.html'
+    form_class = OrganizationImportForm
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = _('Import Users - %s') % self.object.name
+        context['can_edit'] = self.can_edit_organization()
+        return context
+
+    def get_object(self, queryset=None):
+        return get_object_or_404(Organization, id=self.kwargs['pk'])
+
+    def dispatch(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        if not self.can_edit_organization():
+            return generic_message(request, _('Access Denied'),
+                                   _('You do not have permission to import users for this organization.'), status=403)
+        return super().dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        csv_file = form.cleaned_data['csv_file']
+        update_existing = form.cleaned_data['update_existing']
+        activate = form.cleaned_data['activate']
+
+        from judge.utils.import_export import process_user_csv
+        # We need to read the file content, process_user_csv expects an open text file or iterable of lines
+        # But we can also pass the InMemoryUploadedFile if we handle decoding inside.
+        # The utils function I wrote: `decoded_file = csv_file.read().decode('utf-8-sig').splitlines()`
+        # requires the file pointer to be at start.
+        if hasattr(csv_file, 'seek'):
+            csv_file.seek(0)
+
+        result = process_user_csv(csv_file, organization=self.object,
+                                  update_existing=update_existing, activate=activate)
+
+        return self.render_to_response(self.get_context_data(form=form, result=result))

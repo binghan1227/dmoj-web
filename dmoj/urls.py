@@ -226,6 +226,9 @@ urlpatterns = [
              name='contest_participation_disqualify'),
 
         path('/', lambda _, contest: HttpResponsePermanentRedirect(reverse('contest_view', args=[contest]))),
+
+        path('/export/scores', contests.ContestExportScores.as_view(), name='contest_export_scores'),
+        path('/export/submissions', contests.ContestExportSubmissions.as_view(), name='contest_export_submissions'),
     ])),
 
     path('organizations/', organization.OrganizationList.as_view(), name='organization_list'),
@@ -236,6 +239,7 @@ urlpatterns = [
         path('/leave', organization.LeaveOrganization.as_view(), name='leave_organization'),
         path('/edit', organization.EditOrganization.as_view(), name='edit_organization'),
         path('/kick', organization.KickUserWidgetView.as_view(), name='organization_user_kick'),
+        path('/import/users', organization.OrganizationImportUsers.as_view(), name='organization_import_users'),
 
         path('/request', organization.RequestJoinOrganization.as_view(), name='request_organization'),
         path('/request/<int:rpk>', organization.OrganizationRequestDetail.as_view(),
