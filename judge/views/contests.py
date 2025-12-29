@@ -28,10 +28,11 @@ from django.views.generic import ListView, TemplateView, View
 from django.views.generic.detail import DetailView, SingleObjectMixin
 from django.views.generic.list import BaseListView
 from icalendar import Calendar as ICalendar, Event
-from reversion import revisions
 
 import markdown
 from markdown_katex import KatexExtension
+
+from reversion import revisions
 
 from judge import event_poster as event
 from judge.comments import CommentedDetailView
@@ -1346,8 +1347,14 @@ class ContestExportPDF(ContestMixin, View):
                             <span class="bold">Total Problems: </span>
                             {contest_problems.count()}
                         </div>
-                        <div style="margin-top: 10mm;"><span class="bold">Student Name: </span>____________________</div>
-                        <div><span class="bold">Student NetID: </span>____________________</div>
+                        <div style="margin-top: 10mm;">
+                            <span class="bold">Student Name: </span>
+                            ____________________
+                        </div>
+                        <div>
+                            <span class="bold">Student NetID: </span>
+                            ____________________
+                        </div>
                     </div>
                     <div class="instructions">
                         <h3>Instructions</h3>
