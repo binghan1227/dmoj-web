@@ -1,5 +1,9 @@
 import json
 import re
+
+import markdown
+from markdown_katex import KatexExtension
+
 from calendar import Calendar, SUNDAY
 from collections import defaultdict, namedtuple
 from datetime import date, datetime, time, timedelta
@@ -28,10 +32,6 @@ from django.views.generic import ListView, TemplateView, View
 from django.views.generic.detail import DetailView, SingleObjectMixin
 from django.views.generic.list import BaseListView
 from icalendar import Calendar as ICalendar, Event
-
-import markdown
-from markdown_katex import KatexExtension
-
 from reversion import revisions
 
 from judge import event_poster as event
@@ -1377,7 +1377,7 @@ class ContestExportPDF(ContestMixin, View):
 
                 description_html = mark_safe(markdown.markdown(
                     re.sub(r'~([^~]+?)~', r'$\1$', description),
-                    extensions = [
+                    extensions=[
                         'markdown.extensions.extra',
                         'markdown.extensions.codehilite',
                         'markdown.extensions.tables',
@@ -1386,7 +1386,7 @@ class ContestExportPDF(ContestMixin, View):
                         'markdown.extensions.sane_lists',
                         KatexExtension(),
                     ],
-                    output_format = 'html5',
+                    output_format='html5',
                 ))
 
                 html_content += f"""
