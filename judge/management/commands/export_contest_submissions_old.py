@@ -125,8 +125,8 @@ class Command(BaseCommand):
                     # If the source cannot be accessed, skip and warn.
                     self.stderr.write(
                         self.style.WARNING(
-                            f"Submission {submission_id} by {username} has no source; skipping."
-                        )
+                            f"Submission {submission_id} by {username} has no source; skipping.",
+                        ),
                     )
                     continue
 
@@ -141,6 +141,6 @@ class Command(BaseCommand):
 
         self.stdout.write(
             self.style.SUCCESS(
-                f"Exported {count} submissions to archive {archive_path}"
-            )
+                f"Exported {count} submissions to archive {archive_path}",
+            ),
         )
