@@ -1,7 +1,5 @@
-import re
 import json
-import markdown
-from markdown_katex import KatexExtension
+import re
 from calendar import Calendar, SUNDAY
 from collections import defaultdict, namedtuple
 from datetime import date, datetime, time, timedelta
@@ -9,6 +7,8 @@ from functools import partial
 from itertools import chain
 from operator import attrgetter, itemgetter
 
+import markdown
+from markdown_katex import KatexExtension
 from django import forms
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
@@ -910,6 +910,7 @@ class ContestTagDetail(TitleMixin, ContestTagDetailAjax):
     def get_title(self):
         return _('Contest tag: %s') % self.object.name
 
+
 class ContestExportPDF(ContestMixin, View):
 
     def post(self, request, *args, **kwargs):
@@ -950,7 +951,6 @@ class ContestExportPDF(ContestMixin, View):
                         }});
                     }});
                 </script>
-                
                 <meta charset="UTF-8">
                 <title>Contest Paper - {contest.name}</title>
                 <style>
@@ -959,11 +959,9 @@ class ContestExportPDF(ContestMixin, View):
                             margin: 20mm 25mm;
                             size: A4;
                         }}
-                        
                         @page :first {{
                             margin-top: 15mm;
                         }}
-                        
                         body {{
                             margin: 0;
                             padding: 0;
@@ -972,39 +970,31 @@ class ContestExportPDF(ContestMixin, View):
                             font-size: 11pt;
                             line-height: 1.4;
                         }}
-                        
                         .page {{
                             break-inside: avoid;
                             page-break-after: always;
                         }}
-                        
                         .last-page {{
                             page-break-after: auto;
                         }}
-                        
                         .no-print {{
                             display: none !important;
                         }}
-                        
                         .cover-controls {{
                             display: none !important;
                         }}
-                        
                         pre {{
                             page-break-inside: avoid !important;
                             break-inside: avoid !important;
                         }}
-                        
                         table {{
                             page-break-inside: avoid !important;
                             break-inside: avoid !important;
                         }}
-                        
                         ul, ol {{
                             page-break-inside: avoid !important;
                         }}
                     }}
-                    
                     body {{
                         font-family: 'Times New Roman', 'SimSun', serif;
                         line-height: 1.4;
@@ -1016,14 +1006,12 @@ class ContestExportPDF(ContestMixin, View):
                         -webkit-print-color-adjust: exact;
                         print-color-adjust: exact;
                     }}
-                    
                     .problem-description {{
                         font-size: 11pt;
                         line-height: 1.5;
                         margin-bottom: 5mm;
                         font-family: inherit;
                     }}
-                    
                     .problem-description h1,
                     .problem-description h2,
                     .problem-description h3,
@@ -1035,42 +1023,34 @@ class ContestExportPDF(ContestMixin, View):
                         font-weight: bold;
                         line-height: 1.2;
                     }}
-                    
                     .problem-description h1 {{
                         font-size: 1.8em;
                         border-bottom: 2px solid #ccc;
                         padding-bottom: 5px;
                     }}
-                    
                     .problem-description h2 {{
                         font-size: 1.5em;
                         border-bottom: 1px solid #eee;
                         padding-bottom: 3px;
                     }}
-                    
                     .problem-description h3 {{
                         font-size: 1.3em;
                     }}
-                    
                     .problem-description h4 {{
                         font-size: 1.1em;
                     }}
-                    
                     .problem-description p {{
                         margin: 10px 0;
                         line-height: 1.5;
                     }}
-                    
                     .problem-description ul,
                     .problem-description ol {{
                         margin: 10px 0;
                         padding-left: 30px;
                     }}
-                    
                     .problem-description li {{
                         margin: 5px 0;
                     }}
-                    
                     .problem-description code {{
                         font-family: 'Courier New', 'Consolas', monospace;
                         background-color: #f5f5f5;
@@ -1078,7 +1058,6 @@ class ContestExportPDF(ContestMixin, View):
                         border-radius: 3px;
                         font-size: 0.9em;
                     }}
-                    
                     .problem-description pre {{
                         font-family: 'Courier New', 'Consolas', monospace;
                         background-color: #f8f8f8;
@@ -1090,13 +1069,11 @@ class ContestExportPDF(ContestMixin, View):
                         font-size: 0.9em;
                         line-height: 1.3;
                     }}
-                    
                     .problem-description pre code {{
                         background-color: transparent;
                         padding: 0;
                         border-radius: 0;
                     }}
-                    
                     .problem-description table {{
                         border-collapse: collapse;
                         border-spacing: 0;
@@ -1104,45 +1081,37 @@ class ContestExportPDF(ContestMixin, View):
                         margin: 15px 0;
                         font-size: 0.95em;
                     }}
-                    
                     .problem-description table th,
                     .problem-description table td {{
                         border: 1px solid #ddd;
                         padding: 8px 12px;
                         text-align: left;
                     }}
-                    
                     .problem-description table th {{
                         background-color: #f5f5f5;
                         font-weight: bold;
                     }}
-                    
                     .problem-description blockquote {{
                         border-left: 4px solid #ddd;
                         padding-left: 15px;
                         margin: 15px 0;
                         color: #666;
                     }}
-                    
                     .problem-description a {{
                         color: #0066cc;
                         text-decoration: underline;
                     }}
-                    
                     .problem-description hr {{
                         border: 0;
                         border-top: 1px solid #ddd;
                         margin: 20px 0;
                     }}
-                    
                     .problem-description strong {{
                         font-weight: bold;
                     }}
-                    
                     .problem-description em {{
                         font-style: italic;
                     }}
-                    
                     .cover-page {{
                         height: 277mm;
                         display: flex;
@@ -1154,7 +1123,6 @@ class ContestExportPDF(ContestMixin, View):
                         box-sizing: border-box;
                         border-bottom: 2px solid #000;
                     }}
-                    
                     .contest-title {{
                         font-size: 24pt;
                         font-weight: bold;
@@ -1162,13 +1130,11 @@ class ContestExportPDF(ContestMixin, View):
                         text-decoration: underline;
                         text-underline-offset: 5px;
                     }}
-                    
                     .contest-info {{
                         font-size: 14pt;
                         margin-bottom: 20mm;
                         line-height: 2;
                     }}
-                    
                     .instructions {{
                         font-size: 10pt;
                         margin-top: 25mm;
@@ -1177,17 +1143,14 @@ class ContestExportPDF(ContestMixin, View):
                         width: 80%;
                         text-align: left;
                     }}
-                    
                     .instructions h3 {{
                         margin-top: 0;
                         text-align: center;
                     }}
-                    
                     .instructions ul {{
                         padding-left: 20px;
                         margin: 10px 0;
                     }}
-                    
                     .page {{
                         min-height: 257mm;
                         padding: 15mm 25mm;
@@ -1195,7 +1158,6 @@ class ContestExportPDF(ContestMixin, View):
                         position: relative;
                         border-bottom: 1px solid #eee;
                     }}
-                    
                     .page-header {{
                         border-bottom: 2px solid #000;
                         padding-bottom: 5mm;
@@ -1204,27 +1166,22 @@ class ContestExportPDF(ContestMixin, View):
                         justify-content: space-between;
                         align-items: flex-end;
                     }}
-                    
                     .contest-name {{
                         font-size: 12pt;
                         font-weight: bold;
                     }}
-                    
                     .problem-info {{
                         text-align: right;
                         font-size: 10pt;
                     }}
-                    
                     .problem-points {{
                         font-size: 14pt;
                         font-weight: bold;
                         color: #d00;
                     }}
-                    
                     .problem-content {{
                         margin-bottom: 10mm;
                     }}
-                    
                     .problem-title {{
                         font-size: 16pt;
                         font-weight: bold;
@@ -1232,7 +1189,6 @@ class ContestExportPDF(ContestMixin, View):
                         padding-bottom: 3mm;
                         border-bottom: 1px solid #666;
                     }}
-                    
                     .problem-meta {{
                         font-size: 10pt;
                         color: #666;
@@ -1240,7 +1196,6 @@ class ContestExportPDF(ContestMixin, View):
                         display: flex;
                         gap: 15mm;
                     }}
-                    
                     .problem-description {{
                         font-size: 11pt;
                         line-height: 1.5;
@@ -1248,20 +1203,17 @@ class ContestExportPDF(ContestMixin, View):
                         white-space: pre-wrap;
                         font-family: inherit;
                     }}
-                    
                     .answer-area {{
                         margin-top: 15mm;
                         padding-top: 8mm;
                         border-top: 1px dashed #999;
                     }}
-                    
                     .answer-header {{
                         font-size: 12pt;
                         font-weight: bold;
                         margin-bottom: 5mm;
                         color: #006;
                     }}
-                    
                     .answer-box {{
                         min-height: 120mm;
                         border: 2px solid #ccc;
@@ -1271,7 +1223,6 @@ class ContestExportPDF(ContestMixin, View):
                         background-size: 100% 25px;
                         line-height: 25px;
                     }}
-                    
                     .page-footer {{
                         position: absolute;
                         bottom: 15mm;
@@ -1284,12 +1235,10 @@ class ContestExportPDF(ContestMixin, View):
                         padding-top: 3mm;
                         border-top: 1px solid #ccc;
                     }}
-                    
                     .page-number {{
                         text-align: center;
                         flex-grow: 1;
                     }}
-                    
                     .student-info {{
                         position: absolute;
                         bottom: 5mm;
@@ -1299,14 +1248,12 @@ class ContestExportPDF(ContestMixin, View):
                         display: flex;
                         justify-content: space-between;
                     }}
-                    
                     .info-field {{
                         width: 40mm;
                         border-bottom: 1px solid #999;
                         text-align: center;
                         padding-bottom: 2px;
                     }}
-                    
                     .cover-controls {{
                         position: fixed;
                         top: 20px;
@@ -1318,13 +1265,11 @@ class ContestExportPDF(ContestMixin, View):
                         border-radius: 5px;
                         box-shadow: 0 2px 10px rgba(0,0,0,0.1);
                     }}
-                    
                     .cover-controls h4 {{
                         margin-top: 0;
                         margin-bottom: 10px;
                         color: #007bff;
                     }}
-                    
                     .print-btn {{
                         background-color: #007bff;
                         color: white;
@@ -1337,40 +1282,33 @@ class ContestExportPDF(ContestMixin, View):
                         width: 100%;
                         margin-bottom: 5px;
                     }}
-                    
                     .print-btn:hover {{
                         background-color: #0056b3;
                     }}
-                    
                     .text-center {{ text-align: center; }}
                     .text-right {{ text-align: right; }}
                     .bold {{ font-weight: bold; }}
                     .italic {{ font-style: italic; }}
-                    
                     .problem-description .math,
                     .problem-description .katex {{
                         font-size: 1.1em;
                         text-align: center;
                         margin: 10px 0;
                     }}
-                    
                     .problem-description .katex-display {{
                         overflow: auto hidden;
                         padding: 5px 0;
                     }}
-                    
                     .problem-description img {{
                         max-width: 100%;
                         height: auto;
                         display: block;
                         margin: 15px auto;
                     }}
-                    
                     .problem-description .task-list-item {{
                         list-style-type: none;
                         margin-left: -20px;
                     }}
-                    
                     .problem-description .task-list-item-checkbox {{
                         margin-right: 8px;
                     }}
@@ -1387,11 +1325,9 @@ class ContestExportPDF(ContestMixin, View):
                         Paper Size: Default A4
                     </p>
                 </div>
-                
                 <!-- 封面页 -->
                 <div class="page cover-page">
                     <div class="contest-title">{contest.name}</div>
-                    
                     <div class="contest-info">
                         <div><span class="bold">Start Time: </span>{contest.start_time}</div>
                         <div><span class="bold">End Time: </span>{contest.end_time}</div>
@@ -1400,7 +1336,6 @@ class ContestExportPDF(ContestMixin, View):
                         <div style="margin-top: 10mm;"><span class="bold">Student Name: </span>____________________</div>
                         <div><span class="bold">Student NetID: </span>____________________</div>
                     </div>
-                    
                     <div class="instructions">
                         <h3>Instructions</h3>
                         <ul>
@@ -1447,18 +1382,15 @@ class ContestExportPDF(ContestMixin, View):
                             <span class="problem-points">{points} - points</span>
                         </div>
                     </div>
-                    
                     <!-- 题目内容 -->
                     <div class="problem-content">
                         <div class="problem-title">
                             Problem {page_num}: {problem.name}
                         </div>
-                        
                         <div class="problem-description">
                             {description_html}
                         </div>
                     </div>
-                    
                     <!-- 页脚 -->
                     <div class="page-footer">
                         <div class="text-left">Problem {page_num}</div>
@@ -1480,7 +1412,6 @@ class ContestExportPDF(ContestMixin, View):
                             <span class="problem-points">{points} - points</span>
                         </div>
                     </div>
-                    
                     <!-- 答题区域 -->
                     <div class="answer-area">
                         <div class="answer-header">
@@ -1490,13 +1421,11 @@ class ContestExportPDF(ContestMixin, View):
                             <!-- 答题格子线 - 通过CSS背景实现 -->
                         </div>
                     </div>
-                    
                     <!-- 页脚 -->
                     <div class="page-footer">
                         <div class="text-left">Problem {page_num}</div>
                         <div class="text-right">Points: {points}</div>
                     </div>
-                    
                     <!-- 学生信息填写区 -->
                     <div class="student-info">
                         <div class="info-field">Student Name: ________________</div>
