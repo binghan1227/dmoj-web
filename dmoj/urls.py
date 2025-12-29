@@ -225,7 +225,7 @@ urlpatterns = [
         path('/participation/disqualify', contests.ContestParticipationDisqualify.as_view(),
              name='contest_participation_disqualify'),
 
-        path('/export-pdf/', contests.ContestExportPDF.as_view(), name="contest_export_pdf"),
+        path('/export-pdf/', contests.ContestExportPDF.as_view(), name='contest_export_pdf'),
 
         path('/', lambda _, contest: HttpResponsePermanentRedirect(reverse('contest_view', args=[contest]))),
     ])),
