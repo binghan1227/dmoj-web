@@ -47,8 +47,8 @@ New commands and UI enhancements to simplify management:
 ## Todo / Roadmap
 
 - [ ] **Frontend Custom Grader Config**: Allow teachers to configure custom graders directly from the frontend without backend server access.
-- [ ] **Comprehensive Contest Export**: Generate a PDF export containing all problem content, CSV for student scores, and zip for source code.
-- [ ] **Frontend Student Import**: Add a user-friendly frontend interface for the `import_users_csv` command.
+- [x] **Comprehensive Contest Export**: Generate a PDF export containing all problem content, CSV for student scores, and zip for source code.
+- [x] **Frontend Student Import**: Add a user-friendly frontend interface for the `import_users_csv` command.
 - [ ] **Enhanced Multi-Choice Support**: Improve configuration options for multi-choice problems.
 - [ ] **Auto Indexing**: Automatically index problems and contests when creating new ones.
 - [ ] **Disable Virtual Participation**: Disable virtual participation for some contests.
