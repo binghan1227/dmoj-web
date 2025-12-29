@@ -7,8 +7,6 @@ from functools import partial
 from itertools import chain
 from operator import attrgetter, itemgetter
 
-import markdown
-from markdown_katex import KatexExtension
 from django import forms
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
@@ -31,6 +29,9 @@ from django.views.generic.detail import DetailView, SingleObjectMixin
 from django.views.generic.list import BaseListView
 from icalendar import Calendar as ICalendar, Event
 from reversion import revisions
+
+import markdown
+from markdown_katex import KatexExtension
 
 from judge import event_poster as event
 from judge.comments import CommentedDetailView
