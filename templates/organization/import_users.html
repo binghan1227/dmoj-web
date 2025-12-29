@@ -1,21 +1,22 @@
-{% extends "organization/base.html" %}
+{% extends "common-content.html" %}
 
-{% block title_ruler %}{% endblock %}
-
-{% block title_row %}
-    {% set tab = 'import_users' %}
-    {% set title = organization.name %}
-    {% include "organization/header.html" %}
+{% block info_float %}
+    <div class="side-box">
+        <h4>{{ _('Navigation') }}</h4>
+        <ul class="nav nav-list">
+            <li><a href="{{ organization.get_absolute_url() }}"><i class="fa fa-arrow-left"></i> {{ _('Back to Organization') }}</a></li>
+        </ul>
+    </div>
 {% endblock %}
 
 {% block description %}
     <div class="content-description">
-        <h3>{{ _('Import Users from CSV') }}</h3>
+        <h3>{{ _('Import Users to') }} {{ organization.name }}</h3>
         <p>
             {{ _('Upload a CSV file with the following columns:') }} <code>username</code>, <code>first_name</code>, <code>last_name</code>, <code>email</code>, <code>password</code> (optional).
         </p>
 
-        <form enctype="multipart/form-data" method="post">
+        <form enctype="multipart/form-data" method="post" class="form-horizontal">
             {% csrf_token %}
             {% if form.non_field_errors %}
                 <div class="alert alert-error">
@@ -23,47 +24,49 @@
                 </div>
             {% endif %}
 
-            <div class="form-group {% if form.csv_file.errors %}error{% endif %}">
-                <label for="{{ form.csv_file.id_for_label }}">{{ form.csv_file.label }}</label>
+            <div class="form-group {% if form.csv_file.errors %}error{% endif %}" style="margin-bottom: 1em;">
+                <label for="{{ form.csv_file.id_for_label }}" style="display:block; font-weight:bold;">{{ form.csv_file.label }}</label>
                 {{ form.csv_file }}
                 {% if form.csv_file.errors %}
-                     <span class="help-inline">{{ form.csv_file.errors[0] }}</span>
+                     <span class="help-inline" style="color: red;">{{ form.csv_file.errors[0] }}</span>
                 {% endif %}
             </div>
 
-            <div class="form-group">
+            <div class="form-group" style="margin-bottom: 0.5em;">
                 <label class="checkbox">
                     {{ form.update_existing }}
                     {{ form.update_existing.label }}
                 </label>
-                <span class="help-block">{{ _('Update names/emails if username already exists. Passwords are never updated.') }}</span>
+                <div class="help-block" style="color: #777; font-size: 0.9em; margin-left: 20px;">
+                    {{ _('Update names/emails if username already exists. Passwords are never updated.') }}
+                </div>
             </div>
 
-            <div class="form-group">
+            <div class="form-group" style="margin-bottom: 1em;">
                 <label class="checkbox">
                     {{ form.activate }}
                     {{ form.activate.label }}
                 </label>
             </div>
 
-            <div style="margin-top: 1em;">
-                <button type="submit" class="button">{{ _('Import') }}</button>
+            <div class="form-actions">
+                <button type="submit" class="button">{{ _('Import Users') }}</button>
             </div>
         </form>
 
         {% if result %}
             <hr>
             <h4>{{ _('Import Result') }}</h4>
-            <ul>
-                <li>{{ _('Created:') }} {{ result.created }}</li>
-                <li>{{ _('Updated:') }} {{ result.updated }}</li>
-                <li>{{ _('Skipped:') }} {{ result.skipped }}</li>
-                <li>{{ _('Organization Linked:') }} {{ result.org_linked }}</li>
+            <ul class="unstyled">
+                <li><i class="fa fa-plus-circle"></i> {{ _('Created:') }} <strong>{{ result.created }}</strong></li>
+                <li><i class="fa fa-pencil"></i> {{ _('Updated:') }} <strong>{{ result.updated }}</strong></li>
+                <li><i class="fa fa-minus-circle"></i> {{ _('Skipped:') }} <strong>{{ result.skipped }}</strong></li>
+                <li><i class="fa fa-link"></i> {{ _('Organization Linked:') }} <strong>{{ result.org_linked }}</strong></li>
             </ul>
             {% if result.errors %}
                 <div class="alert alert-error">
-                    <strong>{{ _('Errors:') }}</strong>
-                    <ul>
+                    <strong>{{ _('Errors encountered:') }}</strong>
+                    <ul style="max-height: 200px; overflow-y: auto;">
                     {% for error in result.errors %}
                         <li>{{ error }}</li>
                     {% endfor %}
