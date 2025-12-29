@@ -1333,7 +1333,10 @@ class ContestExportPDF(ContestMixin, View):
                         <div><span class="bold">Start Time: </span>{contest.start_time}</div>
                         <div><span class="bold">End Time: </span>{contest.end_time}</div>
                         <div><span class="bold">Time Limits: </span>{contest.time_limit or 'No limit'}</div>
-                        <div><span class="bold">Total Problems: </span>{contest_problems.count()}</div>
+                        <div>
+                            <span class="bold">Total Problems: </span>
+                            {contest_problems.count()}
+                        </div>
                         <div style="margin-top: 10mm;"><span class="bold">Student Name: </span>____________________</div>
                         <div><span class="bold">Student NetID: </span>____________________</div>
                     </div>
@@ -1357,18 +1360,18 @@ class ContestExportPDF(ContestMixin, View):
                     description = problem.description
 
                 description_html = mark_safe(markdown.markdown(
-                        re.sub(r'~([^~]+?)~', r'$\1$', description),
-                        extensions = [
-                            'markdown.extensions.extra',
-                            'markdown.extensions.codehilite',
-                            'markdown.extensions.tables',
-                            'markdown.extensions.toc',
-                            'markdown.extensions.nl2br',
-                            'markdown.extensions.sane_lists',
-                            KatexExtension(),
-                        ],
-                        output_format='html5',
-                    ))
+                    re.sub(r'~([^~]+?)~', r'$\1$', description),
+                    extensions = [
+                        'markdown.extensions.extra',
+                        'markdown.extensions.codehilite',
+                        'markdown.extensions.tables',
+                        'markdown.extensions.toc',
+                        'markdown.extensions.nl2br',
+                        'markdown.extensions.sane_lists',
+                        KatexExtension(),
+                    ],
+                    output_format = 'html5',
+                ))
 
                 html_content += f"""
                 <!-- Problem {page_num} -->
