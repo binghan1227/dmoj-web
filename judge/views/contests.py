@@ -1330,9 +1330,18 @@ class ContestExportPDF(ContestMixin, View):
                 <div class="page cover-page">
                     <div class="contest-title">{contest.name}</div>
                     <div class="contest-info">
-                        <div><span class="bold">Start Time: </span>{contest.start_time}</div>
-                        <div><span class="bold">End Time: </span>{contest.end_time}</div>
-                        <div><span class="bold">Time Limits: </span>{contest.time_limit or 'No limit'}</div>
+                        <div>
+                            <span class="bold">Start Time: </span>
+                            {contest.start_time}
+                        </div>
+                        <div>
+                            <span class="bold">End Time: </span>
+                            {contest.end_time}
+                        </div>
+                        <div>
+                            <span class="bold">Time Limits: </span>
+                            {contest.time_limit or 'No limit'}
+                        </div>
                         <div>
                             <span class="bold">Total Problems: </span>
                             {contest_problems.count()}
