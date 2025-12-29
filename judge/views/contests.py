@@ -911,23 +911,23 @@ class ContestTagDetail(TitleMixin, ContestTagDetailAjax):
         return _('Contest tag: %s') % self.object.name
 
 class ContestExportPDF(ContestMixin, View):
-    
+
     def post(self, request, *args, **kwargs):
         try:
             contest_key = kwargs.get('contest')
-            
+
             contest, exists = _find_contest(request, contest_key, private_check=True)
             if not exists:
                 return contest
-            
+
             contest_problems = contest.contest_problems.order_by('order').select_related('problem')
-            
+
             totalscore = 0
             for page_num, cp in enumerate(contest_problems, 1):
                 problem = cp.problem
-                
+
                 totalscore += problem.points
-            
+
             html_content = f"""
             <!DOCTYPE html>
             <html>
@@ -1412,14 +1412,14 @@ class ContestExportPDF(ContestMixin, View):
                     </div>
                 </div>
             """
-            
+
             for page_num, cp in enumerate(contest_problems, 1):
                 problem = cp.problem
                 points = problem.points
-                
+
                 if problem.description:
                     description = problem.description
-                
+
                 description_html = mark_safe(markdown.markdown(
                         re.sub(r'~([^~]+?)~', r'$\1$', description),
                         extensions = [
@@ -1431,9 +1431,9 @@ class ContestExportPDF(ContestMixin, View):
                             'markdown.extensions.sane_lists',
                             KatexExtension(),
                         ],
-                        output_format='html5'
+                        output_format='html5',
                     ))
-                
+
                 html_content += f"""
                 <!-- Problem {page_num} -->
                 <div class="page {'last-page' if page_num == contest_problems.count() else ''}">
@@ -1466,7 +1466,7 @@ class ContestExportPDF(ContestMixin, View):
                     </div>
                 </div>
                 """
-                
+
                 html_content += f"""
                 <!-- Problem {page_num} -->
                 <div class="page {'last-page' if page_num == contest_problems.count() else ''}">
@@ -1505,7 +1505,7 @@ class ContestExportPDF(ContestMixin, View):
                     </div>
                 </div>
                 """
-            
+
             html_content += """
             <script>
                 function printFromPage(startPage) {
@@ -1528,20 +1528,20 @@ class ContestExportPDF(ContestMixin, View):
             </body>
             </html>
             """
-            
+
             from django.http import HttpResponse
             response = HttpResponse(
                 html_content,
-                content_type='text/html; charset=utf-8'
+                content_type='text/html; charset=utf-8',
             )
             response['Content-Disposition'] = f'attachment; filename="contest_{contest.key}_printable.html"'
-            
+
             return response
-            
+
         except Exception as e:
             from django.http import JsonResponse
             return JsonResponse({
                 'success': False,
                 'error': str(e),
-                'message': 'Error exporting contest.'
+                'message': 'Error exporting contest.',
             }, status=500)
