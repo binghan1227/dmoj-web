@@ -1,15 +1,14 @@
 import json
 import re
-
-import markdown
-from markdown_katex import KatexExtension
-
 from calendar import Calendar, SUNDAY
 from collections import defaultdict, namedtuple
 from datetime import date, datetime, time, timedelta
 from functools import partial
 from itertools import chain
 from operator import attrgetter, itemgetter
+
+import markdown
+from markdown_katex import KatexExtension
 
 from django import forms
 from django.conf import settings
