@@ -283,7 +283,7 @@ class ContestDetail(ContestMixin, TitleMixin, CommentedDetailView):
                 When(solution__is_public=True, solution__publish_on__lte=timezone.now(), then=True),
                 default=False,
                 output_field=BooleanField(),
-            )) \
+            ), contest_points=F('contests__points'), contest_partial=F('contests__partial')) \
             .add_i18n_name(self.request.LANGUAGE_CODE)
         context['metadata'] = {
             'has_public_editorials': any(

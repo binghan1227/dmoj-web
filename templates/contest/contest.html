@@ -191,25 +191,28 @@
         {% endcache %}
     </div>
 
-    <div class="contest-extracting-to-pdf">
-        <form action="{{ url('contest_export_pdf', contest.key) }}" method="post">
-            {% csrf_token %}
-            <button type="submit" class="btn">
-                <i class="fa fa-file-pdf-o"></i>{{ _('Export Contest to PDF') }}
-            </button>
-        </form>
-        <p style="color: #666; font-size: 14px; margin-top: 8px;">
-            {{ _('Includes contest description and problem details') }}
-        </p>
-    </div>
+    <div style="display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between;">
+        <div class="contest-extracting-to-pdf">
+            <form action="{{ url('contest_export_pdf', contest.key) }}" method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn">
+                    <i class="fa fa-file-pdf-o"></i>{{ _('Export Contest to PDF') }}
+                </button>
+            </form>
+            <p style="color: #666; font-size: 14px; margin-top: 8px;">
+                {{ _('Includes contest description and problem details') }}
+            </p>
+        </div>
 
-    {% if contest.ended or request.user.is_superuser or is_editor or is_tester or (is_spectator and contest.started) %}
         {% if can_edit %}
             <div style="margin-bottom: 1em; text-align: right;">
                 <a href="{{ url('contest_export_scores', contest.key) }}" class="button" style="display: inline-block; width: auto; margin-right: 5px;"><i class="fa fa-download"></i> {{ _('Export Scores') }}</a>
                 <a href="{{ url('contest_export_submissions', contest.key) }}" class="button" style="display: inline-block; width: auto;"><i class="fa fa-file-archive-o"></i> {{ _('Export Submissions') }}</a>
             </div>
         {% endif %}
+    </div>
+
+    {% if contest.ended or request.user.is_superuser or is_editor or is_tester or (is_spectator and contest.started) %}
         <hr>
         <div class="contest-problems">
             <h2 style="margin-bottom: 0.2em"><i class="fa fa-fw fa-question-circle"></i>{{ _('Problems') }} </h2>
@@ -235,7 +238,7 @@
                                 {{ problem.i18n_name or problem.name }}
                             {% endif %}
                         </td>
-                        <td>{{ problem.points|floatformat }}{% if problem.partial %}p{% endif %}</td>
+                        <td>{{ problem.contest_points|floatformat }}{% if problem.contest_partial %}p{% endif %}</td>
                         <td>{{ problem.ac_rate|floatformat(1) }}%</td>
                         <td>
                             {% if problem.is_public %}
