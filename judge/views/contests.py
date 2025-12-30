@@ -26,7 +26,7 @@ from django.utils.safestring import mark_safe
 from django.utils.timezone import make_aware
 from django.utils.translation import gettext as _, gettext_lazy
 from django.views.generic import ListView, TemplateView, View
-from django.views.generic.detail import DetailView, SingleObjectMixin
+from django.views.generic.detail import BaseDetailView, DetailView, SingleObjectMixin
 from django.views.generic.list import BaseListView
 from icalendar import Calendar as ICalendar, Event
 from markdown_katex import KatexExtension
@@ -49,7 +49,7 @@ from judge.utils.views import DiggPaginatorMixin, QueryStringSortMixin, SingleOb
 __all__ = ['ContestList', 'ContestDetail', 'ContestRanking', 'ContestJoin', 'ContestLeave', 'ContestCalendar',
            'ContestClone', 'ContestStats', 'ContestMossView', 'ContestMossDelete', 'contest_ranking_ajax',
            'ContestParticipationList', 'ContestParticipationDisqualify', 'get_contest_ranking_list',
-           'base_contest_ranking_list', 'ContestExportPDF']
+           'base_contest_ranking_list', 'ContestExportPDF', 'ContestExportScores', 'ContestExportSubmissions']
 
 
 def _find_contest(request, key, private_check=True):
@@ -1492,3 +1492,40 @@ class ContestExportPDF(ContestMixin, View):
                 'error': str(e),
                 'message': 'Error exporting contest.',
             }, status=500)
+
+
+class ContestExportScores(ContestMixin, PermissionRequiredMixin, BaseDetailView):
+    permission_required = 'judge.change_contest'
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        if not self.object.is_editable_by(request.user):
+            return self.handle_no_permission()
+
+        from judge.utils.import_export import export_contest_scores_csv
+        # Defaults to match management command behavior, can be expanded with query params if needed
+        csv_content = export_contest_scores_csv(self.object, include_disqualified=False, include_virtual=False)
+
+        response = HttpResponse(csv_content, content_type='text/csv')
+        filename = f'{self.object.key}-scores.csv'
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
+
+
+class ContestExportSubmissions(ContestMixin, PermissionRequiredMixin, BaseDetailView):
+    permission_required = 'judge.change_contest'
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        if not self.object.is_editable_by(request.user):
+            return self.handle_no_permission()
+
+        from judge.utils.import_export import export_contest_submissions_zip
+        # Defaults to match management command behavior
+        zip_bytes = export_contest_submissions_zip(self.object, include_disqualified=False,
+                                                   include_virtual=False, latest_only=True)
+
+        response = HttpResponse(zip_bytes, content_type='application/zip')
+        filename = f'{self.object.key}-submissions.zip'
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response

@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block body %}
+    <div style="margin: 0 20px;">
+        <h3>{{ _('Import Users to') }} {{ organization.name }}</h3>
+        <p>
+            {{ _('Upload a CSV file with the following columns:') }} <code>username</code>, <code>first_name</code>, <code>last_name</code>, <code>email</code>, <code>password</code> (optional).
+        </p>
+
+        <form enctype="multipart/form-data" method="post" class="form-horizontal">
+            {% csrf_token %}
+            {% if form.non_field_errors() %}
+                <div class="alert alert-error">
+                    {{ form.non_field_errors() }}
+                </div>
+            {% endif %}
+
+            <div class="form-group {% if form.csv_file.errors %}error{% endif %}" style="margin-bottom: 1em;">
+                <label for="{{ form.csv_file.id_for_label }}" style="display:block; font-weight:bold;">{{ form.csv_file.label }}</label>
+                {{ form.csv_file }}
+                {% if form.csv_file.errors %}
+                     <span class="help-inline" style="color: red;">{{ form.csv_file.errors[0] }}</span>
+                {% endif %}
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0.5em;">
+                <label class="checkbox">
+                    {{ form.update_existing }}
+                    {{ form.update_existing.label }}
+                </label>
+                <div class="help-block" style="color: #777; font-size: 0.9em; margin-left: 20px;">
+                    {{ _('Update names/emails if username already exists. Passwords are never updated.') }}
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 1em;">
+                <label class="checkbox">
+                    {{ form.activate }}
+                    {{ form.activate.label }}
+                </label>
+            </div>
+
+            <div style="margin-top: 1em;">
+                <button type="submit" class="button" style="display: inline-block; width: auto; margin-right: 10px;">{{ _('Import Users') }}</button>
+                <a href="{{ organization.get_absolute_url() }}" class="button" style="display: inline-block; width: auto;">{{ _('Cancel') }}</a>
+            </div>
+        </form>
+
+        {% if result %}
+            <hr>
+            <h4>{{ _('Import Result') }}</h4>
+            <ul class="unstyled">
+                <li><i class="fa fa-plus-circle"></i> {{ _('Created:') }} <strong>{{ result.created }}</strong></li>
+                <li><i class="fa fa-pencil"></i> {{ _('Updated:') }} <strong>{{ result.updated }}</strong></li>
+                <li><i class="fa fa-minus-circle"></i> {{ _('Skipped:') }} <strong>{{ result.skipped }}</strong></li>
+                <li><i class="fa fa-link"></i> {{ _('Organization Linked:') }} <strong>{{ result.org_linked }}</strong></li>
+            </ul>
+            {% if result.errors %}
+                <div class="alert alert-error">
+                    <strong>{{ _('Errors encountered:') }}</strong>
+                    <ul style="max-height: 200px; overflow-y: auto;">
+                    {% for error in result.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+        {% endif %}
+    </div>
+{% endblock %}
