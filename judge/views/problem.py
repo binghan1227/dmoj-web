@@ -1,14 +1,17 @@
 import logging
 import os
 import re
+import shutil
 from datetime import timedelta
 from operator import itemgetter
 from random import randrange
 from statistics import mean, median
 
 from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
+from django.core.files.base import ContentFile
 from django.db import transaction
 from django.db.models import BooleanField, Case, CharField, Count, F, FilteredRelation, Prefetch, Q, When
 from django.db.models.functions import Coalesce
@@ -21,26 +24,51 @@ from django.utils import timezone, translation
 from django.utils.functional import cached_property
 from django.utils.html import escape, format_html
 from django.utils.safestring import mark_safe
-from django.utils.translation import gettext as _, gettext_lazy
+from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy
 from django.views.generic import DetailView, ListView, View
 from django.views.generic.detail import SingleObjectMixin
 from reversion import revisions
 
 from judge.comments import CommentedDetailView
 from judge.forms import ProblemCloneForm, ProblemPointsVoteForm, ProblemSubmitForm
-from judge.models import ContestProblem, ContestSubmission, Judge, Language, Problem, ProblemGroup, ProblemPointsVote, \
-    ProblemTemplate, ProblemTranslation, ProblemType, RuntimeVersion, Solution, Submission, SubmissionSource
+from judge.models import (
+    ContestProblem,
+    ContestSubmission,
+    Judge,
+    Language,
+    Problem,
+    ProblemData,
+    ProblemGroup,
+    ProblemPointsVote,
+    ProblemTemplate,
+    ProblemTestCase,
+    ProblemTranslation,
+    ProblemType,
+    RuntimeVersion,
+    Solution,
+    Submission,
+    SubmissionSource,
+    problem_data_storage,
+)
 from judge.utils.diggpaginator import DiggPaginator
 from judge.utils.opengraph import generate_opengraph
 from judge.utils.pdfoid import PDF_RENDERING_ENABLED, render_pdf
-from judge.utils.problems import contest_attempted_ids, contest_completed_ids, hot_problems, user_attempted_ids, \
-    user_completed_ids
+from judge.utils.problems import (
+    contest_attempted_ids,
+    contest_completed_ids,
+    hot_problems,
+    user_attempted_ids,
+    user_completed_ids,
+)
 from judge.utils.strings import safe_float_or_none, safe_int_or_none
 from judge.utils.tickets import own_ticket_filter
 from judge.utils.views import QueryStringSortMixin, SingleObjectFormView, TitleMixin, add_file_response, generic_message
 
-recjk = re.compile(r'[\u2E80-\u2E99\u2E9B-\u2EF3\u2F00-\u2FD5\u3005\u3007\u3021-\u3029\u3038-\u303A\u303B\u3400-\u4DB5'
-                   r'\u4E00-\u9FC3\uF900-\uFA2D\uFA30-\uFA6A\uFA70-\uFAD9\U00020000-\U0002A6D6\U0002F800-\U0002FA1D]')
+recjk = re.compile(
+    r'[\u2E80-\u2E99\u2E9B-\u2EF3\u2F00-\u2FD5\u3005\u3007\u3021-\u3029\u3038-\u303A\u303B\u3400-\u4DB5'
+    r'\u4E00-\u9FC3\uF900-\uFA2D\uFA30-\uFA6A\uFA70-\uFAD9\U00020000-\U0002A6D6\U0002F800-\U0002FA1D]',
+)
 
 
 def get_contest_problem(problem, profile):
@@ -51,8 +79,11 @@ def get_contest_problem(problem, profile):
 
 
 def get_contest_submission_count(problem, profile, virtual):
-    return profile.current_contest.submissions.exclude(submission__status__in=['IE']) \
-                  .filter(problem__problem=problem, participation__virtual=virtual).count()
+    return (
+        profile.current_contest.submissions.exclude(submission__status__in=['IE'])
+        .filter(problem__problem=problem, participation__virtual=virtual)
+        .count()
+    )
 
 
 class ProblemMixin(object):
@@ -68,8 +99,12 @@ class ProblemMixin(object):
 
     def no_such_problem(self):
         code = self.kwargs.get(self.slug_url_kwarg, None)
-        return generic_message(self.request, _('No such problem'),
-                               _('Could not find a problem with the code "%s".') % code, status=404)
+        return generic_message(
+            self.request,
+            _('No such problem'),
+            _('Could not find a problem with the code "%s".') % code,
+            status=404,
+        )
 
     def get(self, request, *args, **kwargs):
         try:
@@ -106,7 +141,12 @@ class SolvedProblemMixin(object):
         return self.request.profile
 
 
-class ProblemSolution(SolvedProblemMixin, ProblemMixin, TitleMixin, CommentedDetailView):
+class ProblemSolution(
+    SolvedProblemMixin,
+    ProblemMixin,
+    TitleMixin,
+    CommentedDetailView,
+):
     context_object_name = 'problem'
     template_name = 'problem/editorial.html'
 
@@ -114,9 +154,15 @@ class ProblemSolution(SolvedProblemMixin, ProblemMixin, TitleMixin, CommentedDet
         return _('Editorial for {0}').format(self.object.name)
 
     def get_content_title(self):
-        return mark_safe(escape(_('Editorial for {0}')).format(
-            format_html('<a href="{1}">{0}</a>', self.object.name, reverse('problem_detail', args=[self.object.code])),
-        ))
+        return mark_safe(
+            escape(_('Editorial for {0}')).format(
+                format_html(
+                    '<a href="{1}">{0}</a>',
+                    self.object.name,
+                    reverse('problem_detail', args=[self.object.code]),
+                ),
+            ),
+        )
 
     def get_context_data(self, **kwargs):
         context = super(ProblemSolution, self).get_context_data(**kwargs)
@@ -135,8 +181,12 @@ class ProblemSolution(SolvedProblemMixin, ProblemMixin, TitleMixin, CommentedDet
 
     def no_such_problem(self):
         code = self.kwargs.get(self.slug_url_kwarg, None)
-        return generic_message(self.request, _('No such editorial'),
-                               _('Could not find an editorial with the code "%s".') % code, status=404)
+        return generic_message(
+            self.request,
+            _('No such editorial'),
+            _('Could not find an editorial with the code "%s".') % code,
+            status=404,
+        )
 
 
 class ProblemDetail(ProblemMixin, SolvedProblemMixin, CommentedDetailView):
@@ -150,10 +200,14 @@ class ProblemDetail(ProblemMixin, SolvedProblemMixin, CommentedDetailView):
         context = super(ProblemDetail, self).get_context_data(**kwargs)
         user = self.request.user
         authed = user.is_authenticated
-        context['has_submissions'] = authed and Submission.objects.filter(user=user.profile,
-                                                                          problem=self.object).exists()
-        contest_problem = (None if not authed or user.profile.current_contest is None else
-                           get_contest_problem(self.object, user.profile))
+        context['has_submissions'] = (
+            authed and Submission.objects.filter(user=user.profile, problem=self.object).exists()
+        )
+        contest_problem = (
+            None
+            if not authed or user.profile.current_contest is None
+            else get_contest_problem(self.object, user.profile)
+        )
         context['contest_problem'] = contest_problem
         if contest_problem:
             clarifications = self.object.clarifications
@@ -161,9 +215,11 @@ class ProblemDetail(ProblemMixin, SolvedProblemMixin, CommentedDetailView):
             context['clarifications'] = clarifications.order_by('-date')
             context['submission_limit'] = contest_problem.max_submissions
             if contest_problem.max_submissions:
-                context['submissions_left'] = max(contest_problem.max_submissions -
-                                                  get_contest_submission_count(self.object, user.profile,
-                                                                               user.profile.current_contest.virtual), 0)
+                context['submissions_left'] = max(
+                    contest_problem.max_submissions
+                    - get_contest_submission_count(self.object, user.profile, user.profile.current_contest.virtual),
+                    0,
+                )
 
         context['available_judges'] = Judge.objects.filter(online=True, problems=self.object)
         context['show_languages'] = self.object.allowed_languages.count() != Language.objects.count()
@@ -198,8 +254,11 @@ class ProblemDetail(ProblemMixin, SolvedProblemMixin, CommentedDetailView):
             context['translated'] = True
 
         if not self.object.og_image or not self.object.summary:
-            metadata = generate_opengraph('generated-meta-problem:%s:%d' % (context['language'], self.object.id),
-                                          context['description'], 'problem')
+            metadata = generate_opengraph(
+                'generated-meta-problem:%s:%d' % (context['language'], self.object.id),
+                context['description'],
+                'problem',
+            )
         context['meta_description'] = self.object.summary or metadata[0]
         context['og_image'] = self.object.og_image or metadata[1]
         context['enable_comments'] = settings.DMOJ_ENABLE_COMMENTS
@@ -219,15 +278,16 @@ class ProblemDetail(ProblemMixin, SolvedProblemMixin, CommentedDetailView):
             context['prev_contest_problem'] = cp_qs.filter(order__lt=contest_problem.order).order_by('-order').first()
 
         if self.request.user.is_authenticated:
-            form = ProblemSubmitForm(initial={'language': self.request.profile.language},
-                                     instance=Submission(user=self.request.profile, problem=self.object))
+            form = ProblemSubmitForm(
+                initial={'language': self.request.profile.language},
+                instance=Submission(user=self.request.profile, problem=self.object),
+            )
             if self.object.is_editable_by(self.request.user):
                 form.fields['judge'].choices = tuple(
                     Judge.objects.filter(online=True, problems=self.object).values_list('name', 'name'),
                 )
-            form.fields['language'].queryset = (
-                self.object.usable_languages.order_by('name', 'key')
-                .prefetch_related(Prefetch('runtimeversion_set', RuntimeVersion.objects.order_by('priority')))
+            form.fields['language'].queryset = self.object.usable_languages.order_by('name', 'key').prefetch_related(
+                Prefetch('runtimeversion_set', RuntimeVersion.objects.order_by('priority')),
             )
             form.fields['source'].widget.theme = self.request.profile.resolved_ace_theme
             if self.request.profile.language:
@@ -278,12 +338,18 @@ class ProblemVote(ProblemMixin, DetailView):
 
 
 class DeleteProblemVote(ProblemMixin, SingleObjectMixin, View):
-    http_method_names = ['options', 'post']  # This disables GET requests, even though ProblemMixin.get exists.
+    http_method_names = [
+        'options',
+        'post',
+    ]  # This disables GET requests, even though ProblemMixin.get exists.
 
     def post(self, request, *args, **kwargs):
         problem = self.get_object()
         if not problem.vote_permission_for_user(request.user).can_vote():
-            return JsonResponse({'message': _('Not allowed to delete votes on this problem.')}, status=403)
+            return JsonResponse(
+                {'message': _('Not allowed to delete votes on this problem.')},
+                status=403,
+            )
 
         ProblemPointsVote.objects.filter(voter=request.profile, problem=problem).delete()
         return JsonResponse({'message': _('success')})
@@ -341,12 +407,17 @@ class ProblemPdfView(ProblemMixin, SingleObjectMixin, View):
 
                 problem_name = trans.name if trans else problem.name
                 return render_pdf(
-                    html=get_template('problem/raw.html').render({
-                        'problem': problem,
-                        'problem_name': problem_name,
-                        'description': trans.description if trans else problem.description,
-                        'url': request.build_absolute_uri(),
-                    }).replace('"//', '"https://').replace("'//", "'https://"),
+                    html=get_template('problem/raw.html')
+                    .render(
+                        {
+                            'problem': problem,
+                            'problem_name': problem_name,
+                            'description': (trans.description if trans else problem.description),
+                            'url': request.build_absolute_uri(),
+                        },
+                    )
+                    .replace('"//', '"https://')
+                    .replace("'//", "'https://"),
                     title=problem_name,
                 )
 
@@ -384,11 +455,17 @@ class ProblemList(QueryStringSortMixin, TitleMixin, SolvedProblemMixin, ListView
     default_desc = frozenset(('points', 'ac_rate', 'user_count'))
     default_sort = 'code'
 
-    def get_paginator(self, queryset, per_page, orphans=0,
-                      allow_empty_first_page=True, **kwargs):
-        paginator = DiggPaginator(queryset, per_page, body=6, padding=2, orphans=orphans,
-                                  count=queryset.values('pk').count() if not self.in_contest else None,
-                                  allow_empty_first_page=allow_empty_first_page, **kwargs)
+    def get_paginator(self, queryset, per_page, orphans=0, allow_empty_first_page=True, **kwargs):
+        paginator = DiggPaginator(
+            queryset,
+            per_page,
+            body=6,
+            padding=2,
+            orphans=orphans,
+            count=queryset.values('pk').count() if not self.in_contest else None,
+            allow_empty_first_page=allow_empty_first_page,
+            **kwargs,
+        )
         if not self.in_contest:
             queryset = queryset.add_i18n_name(self.request.LANGUAGE_CODE)
             sort_key = self.order.lstrip('-')
@@ -418,8 +495,10 @@ class ProblemList(QueryStringSortMixin, TitleMixin, SolvedProblemMixin, ListView
             elif sort_key == 'type':
                 if self.show_types:
                     queryset = list(queryset)
-                    queryset.sort(key=lambda problem: problem.types_list[0] if problem.types_list else '',
-                                  reverse=self.order.startswith('-'))
+                    queryset.sort(
+                        key=lambda problem: (problem.types_list[0] if problem.types_list else ''),
+                        reverse=self.order.startswith('-'),
+                    )
             paginator.object_list = queryset
         return paginator
 
@@ -430,33 +509,57 @@ class ProblemList(QueryStringSortMixin, TitleMixin, SolvedProblemMixin, ListView
         return self.request.profile
 
     def get_contest_queryset(self):
-        queryset = self.profile.current_contest.contest.contest_problems.select_related('problem__group') \
-            .defer('problem__description').order_by('problem__code') \
-            .annotate(user_count=Count('submission__participation', distinct=True)) \
-            .annotate(i18n_translation=FilteredRelation(
-                'problem__translations', condition=Q(problem__translations__language=self.request.LANGUAGE_CODE),
-            )).annotate(i18n_name=Coalesce(
-                F('i18n_translation__name'), F('problem__name'), output_field=CharField(),
-            )).order_by('order')
-        return [{
-            'id': p['problem_id'],
-            'code': p['problem__code'],
-            'name': p['problem__name'],
-            'i18n_name': p['i18n_name'],
-            'group': {'full_name': p['problem__group__full_name']},
-            'points': p['points'],
-            'partial': p['partial'],
-            'user_count': p['user_count'],
-        } for p in queryset.values('problem_id', 'problem__code', 'problem__name', 'i18n_name',
-                                   'problem__group__full_name', 'points', 'partial', 'user_count')]
+        queryset = (
+            self.profile.current_contest.contest.contest_problems.select_related('problem__group')
+            .defer('problem__description')
+            .order_by('problem__code')
+            .annotate(user_count=Count('submission__participation', distinct=True))
+            .annotate(
+                i18n_translation=FilteredRelation(
+                    'problem__translations',
+                    condition=Q(problem__translations__language=self.request.LANGUAGE_CODE),
+                ),
+            )
+            .annotate(
+                i18n_name=Coalesce(
+                    F('i18n_translation__name'),
+                    F('problem__name'),
+                    output_field=CharField(),
+                ),
+            )
+            .order_by('order')
+        )
+        return [
+            {
+                'id': p['problem_id'],
+                'code': p['problem__code'],
+                'name': p['problem__name'],
+                'i18n_name': p['i18n_name'],
+                'group': {'full_name': p['problem__group__full_name']},
+                'points': p['points'],
+                'partial': p['partial'],
+                'user_count': p['user_count'],
+            }
+            for p in queryset.values(
+                'problem_id',
+                'problem__code',
+                'problem__name',
+                'i18n_name',
+                'problem__group__full_name',
+                'points',
+                'partial',
+                'user_count',
+            )
+        ]
 
     @staticmethod
     def apply_full_text(queryset, query):
         if recjk.search(query):
             # MariaDB can't tokenize CJK properly, fallback to LIKE '%term%' for each term.
             for term in query.split():
-                queryset = queryset.filter(Q(code__icontains=term) | Q(name__icontains=term) |
-                                           Q(description__icontains=term))
+                queryset = queryset.filter(
+                    Q(code__icontains=term) | Q(name__icontains=term) | Q(description__icontains=term),
+                )
             return queryset
         return queryset.search(query, queryset.BOOLEAN).extra(order_by=['-relevance'])
 
@@ -471,16 +574,26 @@ class ProblemList(QueryStringSortMixin, TitleMixin, SolvedProblemMixin, ListView
             filter = Problem.q_add_author_curator_tester(filter, self.profile)
         queryset = Problem.objects.filter(filter).select_related('group').defer('description', 'summary')
         if self.profile is not None and self.hide_solved:
-            queryset = queryset.exclude(id__in=Submission.objects
-                                        .filter(user=self.profile, result='AC', case_points__gte=F('case_total'))
-                                        .values_list('problem_id', flat=True))
+            queryset = queryset.exclude(
+                id__in=Submission.objects.filter(
+                    user=self.profile,
+                    result='AC',
+                    case_points__gte=F('case_total'),
+                ).values_list('problem_id', flat=True),
+            )
         if self.show_types:
             queryset = queryset.prefetch_related('types')
-        queryset = queryset.annotate(has_public_editorial=Case(
-            When(solution__is_public=True, solution__publish_on__lte=timezone.now(), then=True),
-            default=False,
-            output_field=BooleanField(),
-        ))
+        queryset = queryset.annotate(
+            has_public_editorial=Case(
+                When(
+                    solution__is_public=True,
+                    solution__publish_on__lte=timezone.now(),
+                    then=True,
+                ),
+                default=False,
+                output_field=BooleanField(),
+            ),
+        )
         if self.has_public_editorial:
             queryset = queryset.filter(has_public_editorial=True)
         if self.category is not None:
@@ -494,8 +607,13 @@ class ProblemList(QueryStringSortMixin, TitleMixin, SolvedProblemMixin, ListView
                     queryset = self.apply_full_text(queryset, query)
                 else:
                     queryset = queryset.filter(
-                        Q(code__icontains=query) | Q(name__icontains=query) |
-                        Q(translations__name__icontains=query, translations__language=self.request.LANGUAGE_CODE))
+                        Q(code__icontains=query)
+                        | Q(name__icontains=query)
+                        | Q(
+                            translations__name__icontains=query,
+                            translations__language=self.request.LANGUAGE_CODE,
+                        ),
+                    )
         self.prepoint_queryset = queryset
         if self.point_start is not None:
             queryset = queryset.filter(points__gte=self.point_start)
@@ -532,7 +650,11 @@ class ProblemList(QueryStringSortMixin, TitleMixin, SolvedProblemMixin, ListView
             context['point_start'], context['point_end'], context['point_values'] = self.get_noui_slider_points()
         else:
             context['hot_problems'] = None
-            context['point_start'], context['point_end'], context['point_values'] = 0, 0, {}
+            context['point_start'], context['point_end'], context['point_values'] = (
+                0,
+                0,
+                {},
+            )
             context['hide_contest_scoreboard'] = self.contest.scoreboard_visibility in (
                 self.contest.SCOREBOARD_AFTER_CONTEST,
                 self.contest.SCOREBOARD_AFTER_PARTICIPATION,
@@ -545,11 +667,15 @@ class ProblemList(QueryStringSortMixin, TitleMixin, SolvedProblemMixin, ListView
         if not points:
             return 0, 0, {}
         if len(points) == 1:
-            return points[0] - 1, points[0] + 1, {
-                'min': points[0] - 1,
-                '50%': points[0],
-                'max': points[0] + 1,
-            }
+            return (
+                points[0] - 1,
+                points[0] + 1,
+                {
+                    'min': points[0] - 1,
+                    '50%': points[0],
+                    'max': points[0] + 1,
+                },
+            )
 
         start, end = points[0], points[-1]
         if self.point_start is not None:
@@ -558,7 +684,11 @@ class ProblemList(QueryStringSortMixin, TitleMixin, SolvedProblemMixin, ListView
             end = self.point_end
         points_map = {0.0: 'min', 1.0: 'max'}
         size = len(points) - 1
-        return start, end, {points_map.get(i / size, '%.2f%%' % (100 * i / size,)): j for i, j in enumerate(points)}
+        return (
+            start,
+            end,
+            {points_map.get(i / size, '%.2f%%' % (100 * i / size,)): j for i, j in enumerate(points)},
+        )
 
     def GET_with_session(self, request, key):
         if not request.GET:
@@ -642,8 +772,14 @@ class RandomProblem(ProblemList):
         queryset = self.get_normal_queryset()
         count = queryset.count()
         if not count:
-            return HttpResponseRedirect('%s%s%s' % (reverse('problem_list'), request.META['QUERY_STRING'] and '?',
-                                                    request.META['QUERY_STRING']))
+            return HttpResponseRedirect(
+                '%s%s%s'
+                % (
+                    reverse('problem_list'),
+                    request.META['QUERY_STRING'] and '?',
+                    request.META['QUERY_STRING'],
+                ),
+            )
         return HttpResponseRedirect(queryset[randrange(count)].get_absolute_url())
 
 
@@ -670,8 +806,11 @@ class ProblemSubmit(LoginRequiredMixin, ProblemMixin, TitleMixin, SingleObjectFo
         # a non-negative integer, which is required for future checks in this view.
         return max(
             0,
-            max_subs - get_contest_submission_count(
-                self.object, self.request.profile, self.request.profile.current_contest.virtual,
+            max_subs
+            - get_contest_submission_count(
+                self.object,
+                self.request.profile,
+                self.request.profile.current_contest.virtual,
             ),
         )
 
@@ -684,7 +823,8 @@ class ProblemSubmit(LoginRequiredMixin, ProblemMixin, TitleMixin, SingleObjectFo
 
     def get_content_title(self):
         return mark_safe(
-            escape(_('Submit to %s')) % format_html(
+            escape(_('Submit to %s'))
+            % format_html(
                 '<a href="{0}">{1}</a>',
                 reverse('problem_detail', args=[self.object.code]),
                 self.object.translated_name(self.request.LANGUAGE_CODE),
@@ -716,9 +856,8 @@ class ProblemSubmit(LoginRequiredMixin, ProblemMixin, TitleMixin, SingleObjectFo
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
 
-        form.fields['language'].queryset = (
-            self.object.usable_languages.order_by('name', 'key')
-            .prefetch_related(Prefetch('runtimeversion_set', RuntimeVersion.objects.order_by('priority')))
+        form.fields['language'].queryset = self.object.usable_languages.order_by('name', 'key').prefetch_related(
+            Prefetch('runtimeversion_set', RuntimeVersion.objects.order_by('priority')),
         )
 
         form_data = getattr(form, 'cleaned_data', form.initial)
@@ -733,21 +872,34 @@ class ProblemSubmit(LoginRequiredMixin, ProblemMixin, TitleMixin, SingleObjectFo
 
     def form_valid(self, form):
         if (
-            not self.request.user.has_perm('judge.spam_submission') and
-            Submission.objects.filter(user=self.request.profile, rejudged_date__isnull=True)
-                              .exclude(status__in=['D', 'IE', 'CE', 'AB']).count() >= settings.DMOJ_SUBMISSION_LIMIT
+            not self.request.user.has_perm('judge.spam_submission')
+            and Submission.objects.filter(user=self.request.profile, rejudged_date__isnull=True)
+            .exclude(status__in=['D', 'IE', 'CE', 'AB'])
+            .count()
+            >= settings.DMOJ_SUBMISSION_LIMIT
         ):
-            return HttpResponse(format_html('<h1>{0}</h1>', _('You submitted too many submissions.')), status=429)
+            return HttpResponse(
+                format_html('<h1>{0}</h1>', _('You submitted too many submissions.')),
+                status=429,
+            )
         if not self.object.allowed_languages.filter(id=form.cleaned_data['language'].id).exists():
             raise PermissionDenied()
         if not self.request.user.is_superuser and self.object.banned_users.filter(id=self.request.profile.id).exists():
-            return generic_message(self.request, _('Banned from submitting'),
-                                   _('You have been declared persona non grata for this problem. '
-                                     'You are permanently barred from submitting to this problem.'))
+            return generic_message(
+                self.request,
+                _('Banned from submitting'),
+                _(
+                    'You have been declared persona non grata for this problem. '
+                    'You are permanently barred from submitting to this problem.',
+                ),
+            )
         # Must check for zero and not None. None means infinite submissions remaining.
         if self.remaining_submission_count == 0:
-            return generic_message(self.request, _('Too many submissions'),
-                                   _('You have exceeded the submission limit for this problem.'))
+            return generic_message(
+                self.request,
+                _('Too many submissions'),
+                _('You have exceeded the submission limit for this problem.'),
+            )
 
         with transaction.atomic():
             self.new_submission = form.save(commit=False)
@@ -823,25 +975,240 @@ class ProblemClone(ProblemMixin, PermissionRequiredMixin, TitleMixin, SingleObje
     def form_valid(self, form):
         problem = self.object
 
+        # Store references to ManyToMany relationships
         languages = problem.allowed_languages.all()
         language_limits = problem.language_limits.all()
         organizations = problem.organizations.all()
         types = problem.types.all()
         old_code = problem.code
+        new_code = form.cleaned_data['code']
 
+        # Store references to related objects BEFORE cloning problem
+        old_problem_id = problem.id
+        test_cases = list(ProblemTestCase.objects.filter(dataset_id=old_problem_id).order_by('order'))
+        templates = list(ProblemTemplate.objects.filter(problem_id=old_problem_id))
+
+        # Check if ProblemData exists for original problem
+        try:
+            original_problem_data = ProblemData.objects.get(problem_id=old_problem_id)
+            has_problem_data = True
+        except ProblemData.DoesNotExist:
+            original_problem_data = None
+            has_problem_data = False
+
+        # Clone the problem
         problem.pk = None
         problem.is_public = False
         problem.ac_rate = 0
         problem.user_count = 0
-        problem.code = form.cleaned_data['code']
+        problem.code = new_code
+
         with revisions.create_revision(atomic=True):
+            # Save new problem
             problem.save()
             problem.authors.add(self.request.profile)
             problem.allowed_languages.set(languages)
             problem.language_limits.set(language_limits)
             problem.organizations.set(organizations)
             problem.types.set(types)
+
+            # Clone ProblemData if it exists
+            if has_problem_data:
+                self._clone_problem_data(original_problem_data, problem, old_code, new_code)
+
+            # Clone ProblemTestCase instances
+            self._clone_test_cases(test_cases, problem)
+
+            # Clone ProblemTemplate instances
+            self._clone_templates(templates, problem)
+
+            # Copy init.yml from original problem
+            self._copy_init_yml(old_code, new_code)
+
+            # Set revision metadata
             revisions.set_user(self.request.user)
             revisions.set_comment(_('Cloned problem from %s') % old_code)
 
         return HttpResponseRedirect(reverse('admin:judge_problem_change', args=(problem.id,)))
+
+    def _clone_problem_data(self, original_data, new_problem, old_code, new_code):
+        """
+        Clone ProblemData instance and copy associated files.
+
+        Args:
+            original_data: Original ProblemData instance
+            new_problem: Newly created Problem instance
+            old_code: Original problem code
+            new_code: New problem code
+        """
+        logger = logging.getLogger('judge.problem')
+        has_file_errors = False
+
+        # Create new ProblemData instance
+        new_data = ProblemData()
+        new_data.problem = new_problem
+        new_data.output_prefix = original_data.output_prefix
+        new_data.output_limit = original_data.output_limit
+        new_data.feedback = ''  # Reset feedback for new problem
+        new_data.checker = original_data.checker
+        new_data.unicode = original_data.unicode
+        new_data.nobigmath = original_data.nobigmath
+        new_data.checker_args = original_data.checker_args
+
+        # Handle zipfile copying
+        if original_data.zipfile:
+            try:
+                # Read original zipfile
+                original_zipfile_path = original_data.zipfile.path
+                if os.path.exists(original_zipfile_path):
+                    with open(original_zipfile_path, 'rb') as f:
+                        file_content = f.read()
+
+                    # Create new zipfile with new problem code in path
+                    original_filename = os.path.basename(original_data.zipfile.name)
+                    new_data.zipfile.save(original_filename, ContentFile(file_content), save=False)
+            except (IOError, OSError):
+                logger.warning('Failed to copy zipfile for problem %s: %s', new_code, exc_info=True)
+                has_file_errors = True
+
+        # Handle generator file copying
+        if original_data.generator:
+            try:
+                # Read original generator
+                original_generator_path = original_data.generator.path
+                if os.path.exists(original_generator_path):
+                    with open(original_generator_path, 'rb') as f:
+                        file_content = f.read()
+
+                    # Create new generator with new problem code in path
+                    original_filename = os.path.basename(original_data.generator.name)
+                    new_data.generator.save(original_filename, ContentFile(file_content), save=False)
+            except (IOError, OSError):
+                logger.warning('Failed to copy generator for problem %s: %s', new_code, exc_info=True)
+                has_file_errors = True
+
+        # Save the new ProblemData instance
+        new_data.save()
+
+        # Copy individual test case files from old directory to new directory
+        old_dir = problem_data_storage.path(old_code)
+        new_dir = problem_data_storage.path(new_code)
+
+        if os.path.exists(old_dir) and os.path.isdir(old_dir):
+            try:
+                # Create new directory if it doesn't exist
+                os.makedirs(new_dir, exist_ok=True)
+
+                # Copy all files except zipfile and generator (already handled)
+                # and init.yml (will be copied separately)
+                for filename in os.listdir(old_dir):
+                    if filename == 'init.yml':
+                        continue  # Skip init.yml, it will be copied separately
+
+                    old_file_path = os.path.join(old_dir, filename)
+                    new_file_path = os.path.join(new_dir, filename)
+
+                    # Only copy regular files, not directories
+                    if os.path.isfile(old_file_path):
+                        # Skip if this is the zipfile or generator we already copied
+                        if original_data.zipfile and filename == os.path.basename(
+                            original_data.zipfile.name,
+                        ):
+                            continue
+                        if original_data.generator and filename == os.path.basename(
+                            original_data.generator.name,
+                        ):
+                            continue
+
+                        shutil.copy2(old_file_path, new_file_path)
+            except (IOError, OSError):
+                logger.warning('Failed to copy data directory for problem %s: %s', new_code, exc_info=True)
+                has_file_errors = True
+
+        # Show warning message to user if there were any file errors
+        if has_file_errors:
+            messages.warning(
+                self.request,
+                _(
+                    'Some test data files could not be copied. Please verify files in problem data.',
+                ),
+            )
+
+    def _clone_test_cases(self, test_cases, new_problem):
+        """
+        Clone all ProblemTestCase instances for the new problem.
+
+        Args:
+            test_cases: List of original ProblemTestCase instances
+            new_problem: Newly created Problem instance
+        """
+        new_test_cases = []
+
+        for original_case in test_cases:
+            new_case = ProblemTestCase()
+            new_case.dataset = new_problem
+            new_case.order = original_case.order
+            new_case.type = original_case.type
+            new_case.input_file = original_case.input_file
+            new_case.output_file = original_case.output_file
+            new_case.generator_args = original_case.generator_args
+            new_case.points = original_case.points
+            new_case.is_pretest = original_case.is_pretest
+            new_case.output_prefix = original_case.output_prefix
+            new_case.output_limit = original_case.output_limit
+            new_case.checker = original_case.checker
+            new_case.checker_args = original_case.checker_args
+            new_case.batch_dependencies = original_case.batch_dependencies
+
+            new_test_cases.append(new_case)
+
+        # Bulk create for efficiency
+        if new_test_cases:
+            ProblemTestCase.objects.bulk_create(new_test_cases)
+
+    def _clone_templates(self, templates, new_problem):
+        """
+        Clone all ProblemTemplate instances for the new problem.
+
+        Args:
+            templates: List of original ProblemTemplate instances
+            new_problem: Newly created Problem instance
+        """
+        new_templates = []
+
+        for original_template in templates:
+            new_template = ProblemTemplate()
+            new_template.problem = new_problem
+            new_template.language = original_template.language
+            new_template.code = original_template.code
+
+            new_templates.append(new_template)
+
+        # Bulk create for efficiency
+        if new_templates:
+            ProblemTemplate.objects.bulk_create(new_templates)
+
+    def _copy_init_yml(self, old_code, new_code):
+        """
+        Copy init.yml from the original problem to the cloned problem.
+
+        Args:
+            old_code: Original problem code
+            new_code: New problem code
+        """
+        logger = logging.getLogger('judge.problem')
+
+        try:
+            old_init_path = problem_data_storage.path(os.path.join(old_code, 'init.yml'))
+            new_init_path = problem_data_storage.path(os.path.join(new_code, 'init.yml'))
+
+            if os.path.exists(old_init_path):
+                shutil.copy2(old_init_path, new_init_path)
+        except (IOError, OSError):
+            logger.warning('Failed to copy init.yml for %s', new_code, exc_info=True)
+            messages.warning(
+                self.request,
+                _(
+                    'Failed to copy init.yml. You may need to regenerate it manually.',
+                ),
+            )
