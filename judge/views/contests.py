@@ -399,9 +399,14 @@ class ContestJoin(LoginRequiredMixin, ContestMixin, SingleObjectMixin, View):
 
         requires_access_code = (not self.can_edit and contest.access_code and access_code != contest.access_code)
         if contest.ended:
-            #return generic_message(request,
-                #_('Virtual participation disabled'),
-                #_('Virtual participation is disabled for now.'))
+            # Check if virtual participation is allowed for this contest
+            if not contest.allow_virtual_participation:
+                return generic_message(
+                    request,
+                    _('Virtual participation disabled'),
+                    _('Virtual participation is disabled for this contest.'),
+                )
+
             if requires_access_code:
                 raise ContestAccessDenied()
 

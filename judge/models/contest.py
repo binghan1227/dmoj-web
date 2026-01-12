@@ -183,6 +183,11 @@ class Contest(models.Model):
     points_precision = models.IntegerField(verbose_name=_('precision points'), default=3,
                                            validators=[MinValueValidator(0), MaxValueValidator(10)],
                                            help_text=_('Number of digits to round points to.'))
+    allow_virtual_participation = models.BooleanField(
+        verbose_name=_('allow virtual participation'),
+        default=True,
+        help_text=_('Allow users to participate virtually after the contest ends.'),
+    )
 
     @cached_property
     def format_class(self):
