@@ -54,7 +54,6 @@ from judge.models import (
 from judge.utils.diggpaginator import DiggPaginator
 from judge.utils.opengraph import generate_opengraph
 from judge.utils.pdfoid import PDF_RENDERING_ENABLED, render_pdf
-from judge.utils.problem_data import ProblemDataCompiler
 from judge.utils.problems import (
     contest_attempted_ids,
     contest_completed_ids,
