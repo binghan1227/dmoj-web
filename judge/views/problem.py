@@ -1023,8 +1023,8 @@ class ProblemClone(ProblemMixin, PermissionRequiredMixin, TitleMixin, SingleObje
             # Clone ProblemTemplate instances
             self._clone_templates(templates, problem)
 
-            # Regenerate init.yml
-            self._regenerate_init_yml(problem, new_code)
+            # Copy init.yml from original problem
+            self._copy_init_yml(old_code, new_code)
 
             # Set revision metadata
             revisions.set_user(self.request.user)
@@ -1101,10 +1101,10 @@ class ProblemClone(ProblemMixin, PermissionRequiredMixin, TitleMixin, SingleObje
                 os.makedirs(new_dir, exist_ok=True)
 
                 # Copy all files except zipfile and generator (already handled)
-                # and init.yml (will be regenerated)
+                # and init.yml (will be copied separately)
                 for filename in os.listdir(old_dir):
                     if filename == 'init.yml':
-                        continue  # Skip init.yml, it will be regenerated
+                        continue  # Skip init.yml, it will be copied separately
 
                     old_file_path = os.path.join(old_dir, filename)
                     new_file_path = os.path.join(new_dir, filename)
@@ -1189,27 +1189,27 @@ class ProblemClone(ProblemMixin, PermissionRequiredMixin, TitleMixin, SingleObje
         if new_templates:
             ProblemTemplate.objects.bulk_create(new_templates)
 
-    def _regenerate_init_yml(self, new_problem, new_code):
+    def _copy_init_yml(self, old_code, new_code):
         """
-        Auto-regenerate init.yml for the cloned problem.
+        Copy init.yml from the original problem to the cloned problem.
 
         Args:
-            new_problem: Newly created Problem instance
+            old_code: Original problem code
             new_code: New problem code
         """
         logger = logging.getLogger('judge.problem')
 
         try:
-            problem_data = ProblemData.objects.get(problem=new_problem)
-            ProblemDataCompiler.generate(problem_data, problem_data_storage, new_code)
-        except ProblemData.DoesNotExist:
-            # No problem data, nothing to regenerate
-            pass
-        except Exception:
-            logger.warning('Failed to regenerate init.yml for %s: %s', new_code, exc_info=True)
+            old_init_path = problem_data_storage.path(os.path.join(old_code, 'init.yml'))
+            new_init_path = problem_data_storage.path(os.path.join(new_code, 'init.yml'))
+
+            if os.path.exists(old_init_path):
+                shutil.copy2(old_init_path, new_init_path)
+        except (IOError, OSError):
+            logger.warning('Failed to copy init.yml for %s', new_code, exc_info=True)
             messages.warning(
                 self.request,
                 _(
-                    'Failed to regenerate init.yml. You may need to regenerate it manually.',
+                    'Failed to copy init.yml. You may need to regenerate it manually.',
                 ),
             )
