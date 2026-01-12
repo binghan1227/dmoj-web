@@ -296,11 +296,17 @@
                             {{ user_count(contest, request.user) }}
                         </td>
                         {% if not request.in_contest %}
-			                            <td><form action="{{ url('contest_join', contest.key) }}" method="post">
+                            <td>
+                            {% if contest.allow_virtual_participation %}
+                                <form action="{{ url('contest_join', contest.key) }}" method="post">
                                     {% csrf_token %}
                                     <input type="submit" class="unselectable button full participate-button"
                                            value="{{ _('Virtual join') }}">
-                            </form></td>
+                                </form>
+                            {% else %}
+                                <span class="disabled-text">{{ _('VP disabled') }}</span>
+                            {% endif %}
+                            </td>
                         {% endif %}
                     </tr>
                 {% endfor %}
