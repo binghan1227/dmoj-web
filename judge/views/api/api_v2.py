@@ -15,6 +15,7 @@ from judge.models import (
 )
 from judge.utils.infinite_paginator import InfinitePaginationMixin
 from judge.utils.raw_sql import join_sql_subquery, use_straight_join
+from judge.views.ide import IDE_PROBLEM_CODE
 from judge.views.submission import group_test_cases
 
 
@@ -595,6 +596,8 @@ class APISubmissionList(APIListView):
             join_fields=[('problem_id', 'id')],
             alias='visible_problems',
         )
+        # Filter out IDE practice submissions from API
+        queryset = queryset.exclude(problem__code=IDE_PROBLEM_CODE)
         return (
             queryset
             .select_related('problem', 'contest', 'contest__participation', 'contest_object', 'user__user', 'language')

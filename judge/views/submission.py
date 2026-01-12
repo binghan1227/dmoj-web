@@ -28,6 +28,7 @@ from judge.utils.lazy import memo_lazy
 from judge.utils.problems import get_result_data, user_completed_ids, user_editable_ids, user_tester_ids
 from judge.utils.raw_sql import join_sql_subquery, use_straight_join
 from judge.utils.views import DiggPaginatorMixin, TitleMixin, generic_message
+from judge.views.ide import IDE_PROBLEM_CODE
 
 
 def submission_related(queryset):
@@ -310,6 +311,10 @@ class SubmissionsListBase(DiggPaginatorMixin, TitleMixin, ListView):
                 Language.objects.filter(key__in=self.selected_languages).values_list('id', flat=True)))
         if self.selected_statuses:
             queryset = queryset.filter(result__in=self.selected_statuses)
+
+        # Filter out IDE practice submissions except when viewing the idepractice problem page
+        if not (hasattr(self, 'problem') and self.problem.code == IDE_PROBLEM_CODE):
+            queryset = queryset.exclude(problem__code=IDE_PROBLEM_CODE)
 
         return queryset
 
