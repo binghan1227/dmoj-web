@@ -179,5 +179,7 @@ class IDESubmissionStatus(LoginRequiredMixin, View):
                 response['test_case_status'] = test_case.status
                 response['test_case_time'] = test_case.time
                 response['test_case_memory'] = test_case.memory
+                response['feedback'] = test_case.feedback or ''
+                response['extended_feedback'] = test_case.extended_feedback or ''
 
         return JsonResponse(response)
