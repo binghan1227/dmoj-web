@@ -884,6 +884,21 @@ class ProblemSubmit(LoginRequiredMixin, ProblemMixin, TitleMixin, SingleObjectFo
             )
         if not self.object.allowed_languages.filter(id=form.cleaned_data['language'].id).exists():
             raise PermissionDenied()
+
+        # Check if problem uses harness grading - only allow languages with harnesses
+        harness_languages = set(self.object.harnesses.values_list('language__key', flat=True))
+        if harness_languages:
+            language_key = form.cleaned_data['language'].key
+            if language_key not in harness_languages:
+                harness_language_names = list(
+                    self.object.harnesses.select_related('language').values_list('language__name', flat=True)
+                )
+                return generic_message(
+                    self.request,
+                    _('Language not supported'),
+                    _('This problem only accepts submissions in: %s') % ', '.join(harness_language_names),
+                )
+
         if not self.request.user.is_superuser and self.object.banned_users.filter(id=self.request.profile.id).exists():
             return generic_message(
                 self.request,
