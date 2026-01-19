@@ -251,90 +251,7 @@
                 $this.prop('checked', filled).trigger('change');
             });
 
-            // Harness formset management
-            var $harnessTotal = $('#id_harnesses-TOTAL_FORMS');
-            var harnessCount = parseInt($harnessTotal.val());
-
-            $('#add-harness-row').click(function(e) {
-                e.preventDefault();
-                var $container = $('#harness-forms');
-                var $lastForm = $container.find('.harness-form').last();
-
-                // Clone the last form or create from empty form
-                var $newForm = $lastForm.clone();
-                var newIndex = harnessCount;
-
-                // Update form field names and IDs
-                $newForm.find('input, select, textarea').each(function() {
-                    var name = $(this).attr('name');
-                    var id = $(this).attr('id');
-                    if (name) {
-                        $(this).attr('name', name.replace(/-\d+-/, '-' + newIndex + '-'));
-                    }
-                    if (id) {
-                        $(this).attr('id', id.replace(/-\d+-/, '-' + newIndex + '-'));
-                    }
-                    // Clear values
-                    if ($(this).attr('type') === 'checkbox') {
-                        $(this).prop('checked', false);
-                    } else if ($(this).is('select')) {
-                        $(this).val('');
-                    } else if (!$(this).attr('name') || !$(this).attr('name').endsWith('-id')) {
-                        $(this).val('');
-                    }
-                });
-
-                // Update labels
-                $newForm.find('label[for]').each(function() {
-                    var forAttr = $(this).attr('for');
-                    if (forAttr) {
-                        $(this).attr('for', forAttr.replace(/-\d+-/, '-' + newIndex + '-'));
-                    }
-                });
-
-                // Update the ACE editor wrapper ID
-                $newForm.find('.django-ace-widget').each(function() {
-                    var id = $(this).attr('id');
-                    if (id) {
-                        $(this).attr('id', id.replace(/-\d+-/, '-' + newIndex + '-'));
-                    }
-                });
-
-                // Update title
-                $newForm.find('h4').first().text('{{ _("Harness") }} #' + (newIndex + 1));
-
-                // Show the form (in case it was hidden as deleted)
-                $newForm.show();
-
-                // Clear the hidden id field for new form
-                $newForm.find('input[name$="-id"]').val('');
-
-                $container.append($newForm);
-                harnessCount++;
-                $harnessTotal.val(harnessCount);
-
-                // Reinitialize ACE editor for the new form
-                if (typeof ace !== 'undefined') {
-                    $newForm.find('.django-ace-widget').each(function() {
-                        var $widget = $(this);
-                        var $textarea = $widget.siblings('textarea');
-                        var editorDiv = $widget.find('div').first()[0];
-                        if (editorDiv) {
-                            var editor = ace.edit(editorDiv);
-                            editor.setTheme('ace/theme/' + ($widget.data('theme') || 'chrome'));
-                            editor.session.setMode('ace/mode/' + ($widget.data('mode') || 'java'));
-                            editor.session.setValue($textarea.val() || '');
-                            editor.session.on('change', function() {
-                                $textarea.val(editor.getValue());
-                            });
-                        }
-                    });
-                }
-
-                return false;
-            });
-
-            // Handle delete checkbox visibility toggle
+            // Handle delete checkbox visibility toggle for harness form
             $('#harness-forms').on('change', 'input[type="checkbox"][name$="-DELETE"]', function() {
                 var $form = $(this).closest('.harness-form');
                 if ($(this).is(':checked')) {
@@ -546,17 +463,17 @@
 
         <hr style="margin: 2em 0;">
 
-        <h3>{{ _('Harnesses') }}</h3>
+        <h3>{{ _('Harness') }}</h3>
         <p class="help-block">
-            {{ _("Hidden test code that wraps student submissions. Students can download this via 'Download Tester'.") }}
+            {{ _("Hidden test code that wraps student submissions. Students can download this via 'Download Tester'. Only one harness per problem is supported.") }}
         </p>
 
         {{ harness_formset.management_form }}
         <div id="harness-forms">
         {% for form in harness_formset %}
-            <div class="harness-form panel" style="border: 1px solid #ddd; padding: 1em; margin-bottom: 1em; {% if form.DELETE.value %}display: none;{% endif %}">
+            <div class="harness-form panel" style="border: 1px solid #ddd; padding: 1em; margin-bottom: 1em; {% if form.DELETE.value %}opacity: 0.5;{% endif %}">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1em;">
-                    <h4 style="margin: 0;">{{ _('Harness') }} #{{ loop.index }}</h4>
+                    <h4 style="margin: 0;">{{ _('Harness Configuration') }}</h4>
                     {% if harness_formset.can_delete %}
                         <label style="color: #c00;">
                             {{ form.DELETE }} {{ _('Delete') }}
@@ -599,7 +516,6 @@
             </div>
         {% endfor %}
         </div>
-        <a id="add-harness-row" href="#" style="margin-bottom: 1em; display: inline-block;"><i class="fa fa-plus"></i> {{ _('Add harness') }}</a>
 
         <hr style="margin: 2em 0;">
 

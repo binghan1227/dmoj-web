@@ -106,6 +106,14 @@ class ProblemCaseFormSet(formset_factory(ProblemCaseForm, formset=BaseModelFormS
 
 
 class ProblemHarnessForm(ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Filter to only Java and Python language variants
+        from judge.models import Language
+        self.fields['language'].queryset = Language.objects.filter(
+            common_name__in=['Java', 'Python']
+        ).order_by('common_name', 'key')
+
     class Meta:
         model = ProblemHarness
         fields = ['language', 'entry_point', 'skip_precompile', 'harness_code']
@@ -118,6 +126,7 @@ ProblemHarnessFormSet = inlineformset_factory(
     Problem, ProblemHarness,
     form=ProblemHarnessForm,
     extra=1,
+    max_num=1,
     can_delete=True,
 )
 
@@ -196,6 +205,7 @@ class ProblemDataView(TitleMixin, ProblemManagerMixin):
             data=self.request.POST if post else None,
             instance=self.object,
             prefix='harnesses',
+            queryset=ProblemHarness.objects.filter(problem=self.object),
         )
 
     def get_valid_files(self, data, post=False) -> List[str]:
@@ -227,6 +237,8 @@ class ProblemDataView(TitleMixin, ProblemManagerMixin):
 
         if 'harness_formset' not in context:
             context['harness_formset'] = self.get_harness_formset()
+
+        context['ACE_URL'] = settings.ACE_URL
         return context
 
     def post(self, request, *args, **kwargs):
