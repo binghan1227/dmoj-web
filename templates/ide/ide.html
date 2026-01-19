@@ -171,6 +171,17 @@
                             } else {
                                 // Normal completion
                                 output = '{{ _("Result:") }} ' + (data.result || 'N/A') + '\n';
+
+                                // Show feedback for error results (IR, RTE, etc.)
+                                if (data.feedback || data.extended_feedback) {
+                                    if (data.feedback) {
+                                        output += '{{ _("Details:") }} ' + data.feedback + '\n';
+                                    }
+                                    if (data.extended_feedback) {
+                                        output += data.extended_feedback + '\n';
+                                    }
+                                }
+
                                 if (data.time !== null && data.time !== undefined) {
                                     output += '{{ _("Time:") }} ' + data.time.toFixed(3) + 's\n';
                                 }
