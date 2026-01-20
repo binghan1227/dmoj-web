@@ -452,9 +452,9 @@
         <div><a href="{{ url('problem_editorial', problem.code) }}">{{ _('Read editorial') }}</a></div>
     {% endif %}
     {% if problem.view_tester %}
-        <hr>
         {% set harnesses = problem.harnesses.select_related('language').all() %}
         {% if harnesses %}
+            <hr>
             {% for harness in harnesses %}
                 <div>
                     <a href="{{ url('problem_download_tester', problem.code) }}?lang={{ harness.language.key }}">
@@ -462,8 +462,6 @@
                     </a>
                 </div>
             {% endfor %}
-        {% else %}
-            <div><a href="{{ url('problem_download_tester', problem.code) }}">{{ _('Download Tester') }}</a></div>
         {% endif %}
     {% endif %}
     {% if can_edit_problem %}
